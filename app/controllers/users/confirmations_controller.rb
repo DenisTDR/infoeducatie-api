@@ -1,4 +1,8 @@
 class Users::ConfirmationsController < Devise::ConfirmationsController
+  include AuthenticationLocale
+
+  layout "authentication"
+
   # GET /resource/confirmation/new
   # def new
   #   super

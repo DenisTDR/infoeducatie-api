@@ -1,0 +1,37 @@
+<% content_for :title, "Confirmare cont | InfoEducație Admin" %>
+
+<header class="auth-heading">
+  <p class="auth-eyebrow">Confirmare cont</p>
+  <h1>Retrimite instrucțiunile</h1>
+  <p>Vei primi un nou email pentru confirmarea contului.</p>
+</header>
+
+<%= render "users/shared/auth_messages", resource: resource %>
+
+<%= form_with(
+  model: resource,
+  scope: resource_name,
+  url: confirmation_path(resource_name),
+  class: "auth-form",
+  local: true,
+  data: {turbo: false}
+) do |form| %>
+  <div class="auth-field">
+    <%= form.label :email, "Email" %>
+    <%= form.email_field :email,
+      class: "auth-input",
+      autocomplete: "username",
+      autocapitalize: "none",
+      autofocus: true,
+      inputmode: "email",
+      placeholder: "nume@exemplu.ro",
+      required: true,
+      spellcheck: false %>
+  </div>
+
+  <%= form.submit "Retrimite instrucțiunile", class: "auth-submit" %>
+<% end %>
+
+<nav class="auth-links" aria-label="Opțiuni de acces">
+  <%= link_to "Înapoi la autentificare", new_session_path(resource_name) %>
+</nav>

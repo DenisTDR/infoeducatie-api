@@ -1,0 +1,49 @@
+<% content_for :title, "Parolă nouă | InfoEducație Admin" %>
+
+<header class="auth-heading">
+  <p class="auth-eyebrow">Recuperare cont</p>
+  <h1>Alege o parolă nouă</h1>
+  <p>Folosește o parolă unică pentru contul tău InfoEducație.</p>
+</header>
+
+<%= render "users/shared/auth_messages", resource: resource %>
+
+<%= form_with(
+  model: resource,
+  scope: resource_name,
+  url: password_path(resource_name),
+  method: :put,
+  class: "auth-form",
+  local: true,
+  data: {turbo: false}
+) do |form| %>
+  <%= form.hidden_field :reset_password_token %>
+
+  <div class="auth-field">
+    <%= form.label :password, "Parolă nouă" %>
+    <%= form.password_field :password,
+      class: "auth-input",
+      autocomplete: "new-password",
+      autofocus: true,
+      required: true %>
+    <% if @minimum_password_length %>
+      <p class="auth-field__hint">
+        Minimum <%= @minimum_password_length %> caractere.
+      </p>
+    <% end %>
+  </div>
+
+  <div class="auth-field">
+    <%= form.label :password_confirmation, "Confirmă parola nouă" %>
+    <%= form.password_field :password_confirmation,
+      class: "auth-input",
+      autocomplete: "new-password",
+      required: true %>
+  </div>
+
+  <%= form.submit "Salvează parola", class: "auth-submit" %>
+<% end %>
+
+<nav class="auth-links" aria-label="Opțiuni de acces">
+  <%= link_to "Înapoi la autentificare", new_session_path(resource_name) %>
+</nav>

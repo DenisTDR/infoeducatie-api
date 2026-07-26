@@ -1,0 +1,62 @@
+<!DOCTYPE html>
+<html lang="<%= I18n.locale %>">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="robots" content="noindex, nofollow">
+  <meta name="color-scheme" content="light">
+  <title><%= content_for?(:title) ? yield(:title) : "InfoEducație Admin" %></title>
+  <link rel="icon" href="/favicon.ico">
+  <%= stylesheet_link_tag "application", media: "all", "data-turbo-track": "reload" %>
+  <%= csrf_meta_tags %>
+</head>
+<body class="auth-page">
+  <main class="auth-shell">
+    <section class="auth-brand" aria-labelledby="auth-brand-title">
+      <%= image_tag "admin-login.jpg",
+        class: "auth-brand__image",
+        alt: "",
+        aria: {hidden: true} %>
+      <div class="auth-brand__overlay" aria-hidden="true"></div>
+
+      <div class="auth-brand__content">
+        <div class="auth-brand__identity">
+          <a class="auth-brand__wordmark" href="<%= Settings.ui.url %>">InfoEducație</a>
+          <span class="auth-brand__badge">Admin</span>
+        </div>
+
+        <div class="auth-brand__message">
+          <p class="auth-brand__kicker">InfoEducație</p>
+          <h2 id="auth-brand-title">Olimpiada de inovare și creație digitală</h2>
+        </div>
+
+        <div class="auth-brand__footer">
+          <p class="auth-brand__caption">Platformă de administrare</p>
+          <div class="auth-brand__colors" aria-hidden="true">
+            <span></span>
+            <span></span>
+            <span></span>
+            <span></span>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <section class="auth-panel" aria-label="Autentificare InfoEducație">
+      <header class="auth-panel__top">
+        <a class="auth-panel__site-link" href="<%= Settings.ui.url %>">Înapoi la site</a>
+      </header>
+
+      <div class="auth-panel__body">
+        <div class="auth-content">
+          <%= yield %>
+        </div>
+      </div>
+
+      <p class="auth-panel__footer">
+        &copy; <%= Time.current.year %> InfoEducație
+      </p>
+    </section>
+  </main>
+</body>
+</html>

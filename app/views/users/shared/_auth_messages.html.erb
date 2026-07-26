@@ -1,0 +1,20 @@
+<% flash.each do |type, message| %>
+  <% next if message.blank? %>
+  <% success = type.to_s == "notice" %>
+  <div
+    class="auth-message auth-message--<%= success ? "success" : "error" %>"
+    role="<%= success ? "status" : "alert" %>"
+  >
+    <p><%= message %></p>
+  </div>
+<% end %>
+
+<% if resource.respond_to?(:errors) && resource.errors.any? %>
+  <div class="auth-message auth-message--error" role="alert">
+    <ul>
+      <% resource.errors.full_messages.each do |message| %>
+        <li><%= message %></li>
+      <% end %>
+    </ul>
+  </div>
+<% end %>

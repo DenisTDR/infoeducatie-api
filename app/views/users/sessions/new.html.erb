@@ -1,0 +1,57 @@
+<% content_for :title, "Autentificare | InfoEducație Admin" %>
+
+<header class="auth-heading">
+  <p class="auth-eyebrow">InfoEducație Admin</p>
+  <h1>Autentificare</h1>
+  <p>Acces securizat la administrarea platformei.</p>
+</header>
+
+<%= render "users/shared/auth_messages", resource: resource %>
+
+<%= form_with(
+  model: resource,
+  scope: resource_name,
+  url: session_path(resource_name),
+  class: "auth-form",
+  local: true,
+  data: {turbo: false}
+) do |form| %>
+  <div class="auth-field">
+    <%= form.label :email, "Email" %>
+    <%= form.email_field :email,
+      class: "auth-input",
+      autocomplete: "username",
+      autocapitalize: "none",
+      autofocus: true,
+      inputmode: "email",
+      placeholder: "nume@exemplu.ro",
+      required: true,
+      spellcheck: false %>
+  </div>
+
+  <div class="auth-field">
+    <%= form.label :password, "Parolă" %>
+    <%= form.password_field :password,
+      class: "auth-input",
+      autocomplete: "current-password",
+      required: true %>
+  </div>
+
+  <div class="auth-form__meta">
+    <% if devise_mapping.rememberable? %>
+      <label class="auth-checkbox">
+        <%= form.check_box :remember_me %>
+        <span>Păstrează-mă autentificat</span>
+      </label>
+    <% end %>
+
+    <%= link_to "Ți-ai uitat parola?", new_password_path(resource_name) %>
+  </div>
+
+  <%= form.submit "Autentificare", class: "auth-submit" %>
+<% end %>
+
+<nav class="auth-links" aria-label="Opțiuni de acces">
+  <%= link_to "Nu ai primit instrucțiunile de confirmare?",
+    new_confirmation_path(resource_name) %>
+</nav>

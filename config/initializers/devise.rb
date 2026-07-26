@@ -15,6 +15,14 @@ Devise.setup do |config|
   config.responder.error_status = :unprocessable_content
   config.responder.redirect_status = :see_other
 
+  config.warden do |manager|
+    manager.failure_app = lambda do |env|
+      attempted_path = env.dig("warden.options", :attempted_path).to_s
+      locale = attempted_path.start_with?("/internal/admin") ? :ro : I18n.default_locale
+      I18n.with_locale(locale) { Devise::FailureApp.call(env) }
+    end
+  end
+
   # Configure the class responsible to send e-mails.
   # config.mailer = 'Devise::Mailer'
 
