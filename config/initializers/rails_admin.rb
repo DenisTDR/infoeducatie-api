@@ -2,6 +2,10 @@ Dir[Rails.root.join('lib/admin/*.rb')].each { |f| require f }
 
 RailsAdmin.config do |config|
   config.asset_source = :sprockets
+  config.main_app_name = ["InfoEducație", "Admin"]
+  config.show_gravatar = false
+  config.compact_show_view = true
+  config.default_items_per_page = 30
 
   ### Popular gems integration
 
@@ -74,14 +78,38 @@ RailsAdmin.config do |config|
     # history_show
   end
 
+  config.navigation_static_label = "External tools"
   config.navigation_static_links = {
-    "Zendesk InfoEducatie" => "http://infoeducatie.zendesk.com/",
-    "Zendesk Ping" => "http://ping.zendesk.com",
-    "Forum Admin" => "http://community.infoeducatie.ro/admin"
+    "InfoEducație website" => "https://infoeducatie.ro",
+    "Community admin" => "https://community.infoeducatie.ro/admin",
+    "InfoEducație support" => "https://infoeducatie.zendesk.com/",
+    "Ping support" => "https://ping.zendesk.com"
   }
 
   config.included_models = ["ApiCredential", "Project", "Contestant", "User", "Talk",
                             "Screenshot", "Edition", "News", "Ckeditor::Asset",
                             "Ckeditor::AttachmentFile", "Ckeditor::Picture",
                             "Alumnus", "Teacher"]
+
+  {
+    "Project" => ["Competition", "fas fa-laptop-code", 10],
+    "Contestant" => ["Competition", "fas fa-user-graduate", 20],
+    "Edition" => ["Competition", "fas fa-calendar-alt", 30],
+    "Teacher" => ["Competition", "fas fa-chalkboard-teacher", 40],
+    "Screenshot" => ["Competition", "fas fa-images", 50],
+    "User" => ["Community", "fas fa-users", 60],
+    "News" => ["Community", "fas fa-newspaper", 70],
+    "Talk" => ["Community", "fas fa-microphone", 80],
+    "Alumnus" => ["Community", "fas fa-user-check", 90],
+    "ApiCredential" => ["Security", "fas fa-key", 100],
+    "Ckeditor::Asset" => ["Editor media", "fas fa-photo-video", 110],
+    "Ckeditor::AttachmentFile" => ["Editor media", "fas fa-paperclip", 120],
+    "Ckeditor::Picture" => ["Editor media", "fas fa-image", 130]
+  }.each do |model_name, (nav_label, nav_icon, nav_weight)|
+    config.model model_name do
+      navigation_label nav_label
+      navigation_icon nav_icon
+      weight nav_weight
+    end
+  end
 end

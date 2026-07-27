@@ -1,0 +1,57 @@
+<aside
+  class="ie-admin-sidebar"
+  id="admin-sidebar"
+  aria-label="Admin navigation"
+  data-admin-sidebar
+>
+  <div class="ie-admin-sidebar__header">
+    <span>Navigation</span>
+    <button
+      class="ie-icon-button ie-admin-sidebar__close"
+      type="button"
+      aria-label="Close navigation"
+      title="Close navigation"
+      data-admin-sidebar-dismiss
+    >
+      <i class="fas fa-times" aria-hidden="true"></i>
+    </button>
+  </div>
+
+  <div class="ie-admin-nav-search">
+    <label class="visually-hidden" for="admin-navigation-search">
+      Search navigation
+    </label>
+    <i class="fas fa-search" aria-hidden="true"></i>
+    <input
+      id="admin-navigation-search"
+      type="search"
+      placeholder="Search navigation"
+      autocomplete="off"
+      data-admin-nav-search
+    >
+    <button
+      type="button"
+      aria-label="Clear navigation search"
+      title="Clear search"
+      data-admin-nav-search-clear
+      hidden
+    >
+      <i class="fas fa-times" aria-hidden="true"></i>
+    </button>
+  </div>
+
+  <nav class="ie-admin-sidebar__navigation" aria-label="Resources">
+    <ul class="sidebar nav flex-column flex-nowrap">
+      <%= main_navigation %>
+      <%= root_navigation %>
+      <%= static_navigation %>
+    </ul>
+    <p class="ie-admin-nav-empty" data-admin-nav-empty hidden>
+      No matching navigation items.
+    </p>
+  </nav>
+
+  <div class="ie-admin-sidebar__footer" aria-hidden="true">
+    <span></span><span></span><span></span><span></span>
+  </div>
+</aside>

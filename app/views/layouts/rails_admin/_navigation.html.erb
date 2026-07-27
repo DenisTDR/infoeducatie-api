@@ -1,0 +1,25 @@
+<div class="ie-admin-topbar__inner">
+  <button
+    class="ie-icon-button ie-admin-topbar__menu"
+    type="button"
+    aria-controls="admin-sidebar"
+    aria-expanded="false"
+    title="Toggle navigation"
+    data-admin-sidebar-toggle
+  >
+    <i class="fas fa-bars" aria-hidden="true"></i>
+    <span class="visually-hidden"><%= t("admin.toggle_navigation") %></span>
+  </button>
+
+  <a class="ie-admin-brand" href="<%= dashboard_path %>">
+    <span class="ie-admin-brand__wordmark">
+      <%= _get_plugin_name[0] || "InfoEducație" %>
+    </span>
+    <span class="ie-admin-brand__badge">
+      <%= _get_plugin_name[1] || "Admin" %>
+    </span>
+  </a>
+
+  <div class="ie-admin-topbar__spacer"></div>
+  <%= render "layouts/rails_admin/secondary_navigation" %>
+</div>

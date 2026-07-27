@@ -1,0 +1,41 @@
+<header
+  class="ie-admin-page-header"
+  data-model="<%= @abstract_model&.to_param %>"
+>
+  <nav class="ie-admin-breadcrumbs" aria-label="Breadcrumb">
+    <%= breadcrumb %>
+  </nav>
+  <div class="ie-admin-page-header__title">
+    <h1><%= @page_name %></h1>
+  </div>
+</header>
+
+<% flash && flash.each do |key, value| %>
+  <div
+    class="<%= flash_alert_class(key) %> alert alert-dismissible ie-admin-alert"
+    role="<%= key.to_s == "alert" ? "alert" : "status" %>"
+  >
+    <div class="ie-admin-alert__content"><%= value %></div>
+    <button
+      type="button"
+      class="btn-close"
+      data-bs-dismiss="alert"
+      aria-label="Close"
+    ></button>
+  </div>
+<% end %>
+
+<nav class="ie-admin-context-nav" aria-label="Page actions">
+  <ul class="nav">
+    <%= menu_for(
+      (@abstract_model ? (@object.try(:persisted?) ? :member : :collection) : :root),
+      @abstract_model,
+      @object
+    ) %>
+    <%= content_for :contextual_tabs %>
+  </ul>
+</nav>
+
+<div class="ie-admin-page-content">
+  <%= yield %>
+</div>

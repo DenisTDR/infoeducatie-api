@@ -26,6 +26,14 @@ RSpec.describe "RailsAdmin actions", type: :request do
 
       expect(response).to have_http_status(:ok)
       expect(response.body).to include("8-128 characters")
+
+      document = Nokogiri::HTML(response.body)
+      expect(document.at_css('input[name="user[email]"]')["autocomplete"]).to eq(
+        "email"
+      )
+      expect(
+        document.at_css('input[name="user[password]"]')["autocomplete"]
+      ).to eq("new-password")
     end
 
     it "creates a user" do

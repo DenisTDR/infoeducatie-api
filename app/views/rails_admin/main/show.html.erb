@@ -1,0 +1,43 @@
+<% @model_config.show.with(
+  object: @object,
+  view: self,
+  controller: self.controller
+).visible_groups.each do |fieldset| %>
+  <% fields = fieldset.with(
+    object: @object,
+    view: self,
+    controller: self.controller
+  ).visible_fields %>
+  <% fields = fields.reject do |field|
+    RailsAdmin.config.compact_show_view &&
+      (field.formatted_value.nil? || field.formatted_value == "")
+  end %>
+  <% next if fields.empty? %>
+
+  <section class="ie-detail-section">
+    <header class="ie-section-heading">
+      <div>
+        <h2><%= fieldset.label %></h2>
+        <% if fieldset.help %>
+          <p><%= fieldset.help %></p>
+        <% end %>
+      </div>
+    </header>
+
+    <dl class="ie-detail-list">
+      <% fields.each do |field| %>
+        <div class="ie-detail-row <%= field.type_css_class %> <%= field.css_class %>">
+          <dt><%= field.label %></dt>
+          <dd>
+            <% value = field.pretty_value %>
+            <% if value.present? %>
+              <%= value %>
+            <% else %>
+              <span class="ie-empty-value">Not provided</span>
+            <% end %>
+          </dd>
+        </div>
+      <% end %>
+    </dl>
+  </section>
+<% end %>

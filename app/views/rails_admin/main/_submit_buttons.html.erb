@@ -1,0 +1,70 @@
+<div class="ie-form-actions">
+  <input
+    name="return_to"
+    type="hidden"
+    value="<%= params[:return_to].presence || request.referer %>"
+  >
+
+  <div class="ie-form-actions__inner">
+    <button
+      class="btn btn-primary ie-form-actions__save"
+      data-disable-with="<%= t("admin.form.save") %>"
+      name="_save"
+      type="submit"
+      <%= "disabled" unless @action.enabled? %>
+    >
+      <i class="fas fa-check" aria-hidden="true"></i>
+      <%= t("admin.form.save") %>
+    </button>
+
+    <% if @action.enabled? &&
+      (authorized?(:new, @abstract_model) || authorized?(:edit, @abstract_model)) %>
+      <div class="dropdown ie-form-actions__more">
+        <button
+          class="btn btn-outline-secondary dropdown-toggle"
+          type="button"
+          data-bs-toggle="dropdown"
+          aria-expanded="false"
+        >
+          <i class="fas fa-ellipsis-v ie-form-actions__more-icon" aria-hidden="true"></i>
+          <span class="ie-form-actions__more-label">More save options</span>
+        </button>
+        <div class="dropdown-menu">
+          <% if authorized?(:new, @abstract_model) %>
+            <button
+              class="dropdown-item"
+              data-disable-with="<%= t("admin.form.save_and_add_another") %>"
+              name="_add_another"
+              type="submit"
+            >
+              <i class="fas fa-plus" aria-hidden="true"></i>
+              <%= t("admin.form.save_and_add_another") %>
+            </button>
+          <% end %>
+          <% if authorized?(:edit, @abstract_model) %>
+            <button
+              class="dropdown-item"
+              data-disable-with="<%= t("admin.form.save_and_edit") %>"
+              name="_add_edit"
+              type="submit"
+            >
+              <i class="fas fa-pencil-alt" aria-hidden="true"></i>
+              <%= t("admin.form.save_and_edit") %>
+            </button>
+          <% end %>
+        </div>
+      </div>
+    <% end %>
+
+    <button
+      class="btn btn-link ie-form-actions__cancel"
+      data-disable-with="<%= t("admin.form.cancel") %>"
+      formnovalidate
+      name="_continue"
+      type="submit"
+    >
+      <i class="fas fa-times" aria-hidden="true"></i>
+      <%= t("admin.form.cancel") %>
+    </button>
+  </div>
+</div>

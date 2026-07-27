@@ -1,14 +1,244 @@
 (function ($) {
   "use strict";
 
-  var screenshotInsertInstalled = false;
+  var sidebarPreferenceKey = "infoeducatie.admin.sidebarCollapsed";
+
+  function isDesktopAdmin() {
+    return window.matchMedia("(min-width: 992px)").matches;
+  }
+
+  function readSidebarPreference() {
+    try {
+      return window.localStorage.getItem(sidebarPreferenceKey) === "true";
+    } catch (_error) {
+      return false;
+    }
+  }
+
+  function writeSidebarPreference(collapsed) {
+    try {
+      window.localStorage.setItem(sidebarPreferenceKey, String(collapsed));
+    } catch (_error) {
+      // The shell remains usable when storage is unavailable.
+    }
+  }
+
+  function updateSidebarToggle(body) {
+    var toggle = body.querySelector("[data-admin-sidebar-toggle]");
+    if (!toggle) return;
+
+    var expanded = isDesktopAdmin()
+      ? !body.classList.contains("ie-sidebar-collapsed")
+      : body.classList.contains("ie-sidebar-open");
+
+    toggle.setAttribute("aria-expanded", String(expanded));
+    toggle.setAttribute(
+      "title",
+      expanded ? "Collapse navigation" : "Expand navigation"
+    );
+  }
+
+  function updateSidebarAccessibility(body) {
+    var sidebar = body.querySelector("[data-admin-sidebar]");
+    if (!sidebar) return;
+
+    var hidden = !isDesktopAdmin() &&
+      !body.classList.contains("ie-sidebar-open");
+
+    if (hidden) {
+      sidebar.setAttribute("aria-hidden", "true");
+      sidebar.setAttribute("inert", "");
+    } else {
+      sidebar.removeAttribute("aria-hidden");
+      sidebar.removeAttribute("inert");
+    }
+  }
+
+  function closeMobileSidebar(body, restoreFocus) {
+    if (!body.classList.contains("ie-sidebar-open")) return;
+
+    body.classList.remove("ie-sidebar-open");
+    updateSidebarToggle(body);
+    updateSidebarAccessibility(body);
+
+    if (restoreFocus) {
+      var toggle = body.querySelector("[data-admin-sidebar-toggle]");
+      if (toggle) toggle.focus();
+    }
+  }
+
+  function toggleAdminSidebar(body) {
+    if (isDesktopAdmin()) {
+      var collapsed = body.classList.toggle("ie-sidebar-collapsed");
+      writeSidebarPreference(collapsed);
+    } else {
+      body.classList.toggle("ie-sidebar-open");
+    }
+
+    updateSidebarToggle(body);
+    updateSidebarAccessibility(body);
+  }
+
+  function directLinkForItem(item) {
+    var children = item.children;
+
+    for (var index = 0; index < children.length; index += 1) {
+      if (children[index].tagName === "A") return children[index];
+    }
+
+    return null;
+  }
+
+  function filterAdminNavigation(body, query) {
+    var navigation = body.querySelector(".ie-admin-sidebar__navigation");
+    var list = navigation && navigation.querySelector(".sidebar");
+    var clear = body.querySelector("[data-admin-nav-search-clear]");
+    var empty = body.querySelector("[data-admin-nav-empty]");
+    if (!list) return;
+
+    var normalizedQuery = query.trim().toLocaleLowerCase();
+    var items = Array.prototype.slice.call(list.querySelectorAll("li"));
+    var leafItems = items.filter(function (item) {
+      return directLinkForItem(item) && !item.querySelector("li");
+    });
+
+    leafItems.forEach(function (item) {
+      var link = directLinkForItem(item);
+      var text = link ? link.textContent.trim().toLocaleLowerCase() : "";
+      item.hidden = Boolean(normalizedQuery) && text.indexOf(normalizedQuery) === -1;
+    });
+
+    Array.prototype.slice.call(list.children).forEach(function (group) {
+      var groupLeaves = leafItems.filter(function (item) {
+        return group.contains(item);
+      });
+      var ownLink = directLinkForItem(group);
+      var ownText = ownLink ? ownLink.textContent.trim().toLocaleLowerCase() : "";
+      var ownMatch = ownText.indexOf(normalizedQuery) !== -1;
+      var hasMatch = groupLeaves.some(function (item) {
+        return !item.hidden;
+      });
+
+      group.hidden = Boolean(normalizedQuery) && !ownMatch && !hasMatch;
+
+      if (normalizedQuery && !group.hidden) {
+        Array.prototype.slice.call(group.querySelectorAll(".collapse")).forEach(
+          function (collapse) {
+            collapse.classList.add("show");
+          }
+        );
+        Array.prototype.slice.call(group.querySelectorAll("[data-bs-toggle='collapse']")).forEach(
+          function (trigger) {
+            trigger.setAttribute("aria-expanded", "true");
+          }
+        );
+      }
+    });
+
+    if (clear) clear.hidden = !normalizedQuery;
+    if (empty) {
+      empty.hidden = !normalizedQuery ||
+        Array.prototype.slice.call(list.children).some(function (group) {
+          return !group.hidden;
+        });
+    }
+  }
+
+  function initializeNavigationSearch(body) {
+    var input = body.querySelector("[data-admin-nav-search]");
+    var clear = body.querySelector("[data-admin-nav-search-clear]");
+    if (!input) return;
+
+    input.addEventListener("input", function () {
+      filterAdminNavigation(body, input.value);
+    });
+
+    if (clear) {
+      clear.addEventListener("click", function () {
+        input.value = "";
+        filterAdminNavigation(body, "");
+        input.focus();
+      });
+    }
+  }
+
+  function labelIconActions(body) {
+    Array.prototype.slice.call(
+      body.querySelectorAll(".nav > li[title] > a, .nav > li > a[title]")
+    ).forEach(function (link) {
+      var item = link.closest("li");
+      var label = link.getAttribute("title") ||
+        (item && item.getAttribute("title"));
+      if (!label) return;
+
+      if (!link.getAttribute("aria-label")) link.setAttribute("aria-label", label);
+      if (!link.getAttribute("title")) link.setAttribute("title", label);
+    });
+  }
+
+  function initializeAdminShell(scope) {
+    var root = scope || document;
+    var body = root.matches && root.matches("[data-admin-shell]")
+      ? root
+      : document.querySelector("[data-admin-shell]");
+
+    if (!body || body.dataset.adminShellReady === "true") return;
+    body.dataset.adminShellReady = "true";
+
+    if (isDesktopAdmin() && readSidebarPreference()) {
+      body.classList.add("ie-sidebar-collapsed");
+    }
+
+    updateSidebarToggle(body);
+    updateSidebarAccessibility(body);
+    initializeNavigationSearch(body);
+    labelIconActions(body);
+
+    var toggle = body.querySelector("[data-admin-sidebar-toggle]");
+    if (toggle) {
+      toggle.addEventListener("click", function () {
+        toggleAdminSidebar(body);
+      });
+    }
+
+    Array.prototype.slice.call(
+      body.querySelectorAll("[data-admin-sidebar-dismiss]")
+    ).forEach(function (dismiss) {
+      dismiss.addEventListener("click", function () {
+        closeMobileSidebar(body, true);
+      });
+    });
+
+    var sidebar = body.querySelector("[data-admin-sidebar]");
+    if (sidebar) {
+      sidebar.addEventListener("click", function (event) {
+        if (!isDesktopAdmin() && event.target.closest("a")) {
+          closeMobileSidebar(body, false);
+        }
+      });
+    }
+
+    body.addEventListener("keydown", function (event) {
+      if (event.key === "Escape") closeMobileSidebar(body, true);
+    });
+
+    window.addEventListener("resize", function () {
+      if (!document.body.isSameNode(body)) return;
+      if (isDesktopAdmin()) body.classList.remove("ie-sidebar-open");
+      updateSidebarToggle(body);
+      updateSidebarAccessibility(body);
+    });
+  }
 
   function installScreenshotInsertFields() {
-    if (screenshotInsertInstalled || !window.nestedFormEvents) return;
+    if (!window.nestedFormEvents) return;
 
     var originalInsertFields = window.nestedFormEvents.insertFields;
+    if (originalInsertFields && originalInsertFields.infoeducatieScreenshotAware) {
+      return;
+    }
 
-    window.nestedFormEvents.insertFields = function (content, association, link) {
+    var insertFields = function (content, association, link) {
       var target = $(link).data("target");
       var isScreenshotEditor =
         association === "screenshots" && $(link).data("screenshot-add");
@@ -20,7 +250,8 @@
       return originalInsertFields.call(window.nestedFormEvents, content, association, link);
     };
 
-    screenshotInsertInstalled = true;
+    insertFields.infoeducatieScreenshotAware = true;
+    window.nestedFormEvents.insertFields = insertFields;
   }
 
   function refreshScreenshotEditor(editor) {
@@ -127,6 +358,12 @@
     });
   }
 
+  document.addEventListener("click", function (event) {
+    if (event.target.closest("[data-screenshot-add]")) {
+      installScreenshotInsertFields();
+    }
+  }, true);
+
   $(document).on("nested:fieldAdded:screenshots", "form", function (event) {
     var $field = $(event.field);
     if (!$field.closest("[data-screenshot-editor]").length) return;
@@ -221,12 +458,20 @@
   });
 
   $(function () {
+    initializeAdminShell(document);
     initializeScreenshotEditors(document);
     initializeRichTextEditors(document);
   });
 
   document.addEventListener("rails_admin.dom_ready", function (event) {
+    initializeAdminShell(event.detail || document);
     initializeScreenshotEditors(event.detail || document);
     initializeRichTextEditors(event.detail || document);
+  });
+
+  document.addEventListener("turbo:load", function () {
+    initializeAdminShell(document);
+    initializeScreenshotEditors(document);
+    initializeRichTextEditors(document);
   });
 })(jQuery);

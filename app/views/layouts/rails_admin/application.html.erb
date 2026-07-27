@@ -1,0 +1,50 @@
+<!DOCTYPE html>
+<html lang="<%= I18n.locale %>">
+  <head>
+    <%= render "layouts/rails_admin/head" %>
+  </head>
+  <body
+    class="rails_admin ie-admin ie-admin--<%= @action&.action_name || "dashboard" %>"
+    data-admin-shell
+  >
+    <a class="ie-skip-link" href="#admin-main-content">Skip to content</a>
+
+    <div
+      data-i18n-options="<%= I18n.t("admin.js").to_json %>"
+      id="admin-js"
+    ></div>
+
+    <div
+      class="ie-admin-loading"
+      id="loading"
+      role="status"
+      aria-live="polite"
+      style="display: none"
+    >
+      <i class="fas fa-circle-notch fa-spin" aria-hidden="true"></i>
+      <span><%= t("admin.loading") %></span>
+    </div>
+
+    <header class="ie-admin-topbar">
+      <%= render "layouts/rails_admin/navigation" %>
+    </header>
+
+    <div class="ie-admin-shell">
+      <%= render "layouts/rails_admin/sidebar_navigation" %>
+
+      <button
+        class="ie-admin-backdrop"
+        type="button"
+        aria-label="Close navigation"
+        data-admin-sidebar-dismiss
+        tabindex="-1"
+      ></button>
+
+      <main class="ie-admin-main" id="admin-main-content" data-admin-main>
+        <div class="ie-admin-main__inner">
+          <%= render template: "layouts/rails_admin/content" %>
+        </div>
+      </main>
+    </div>
+  </body>
+</html>

@@ -1,0 +1,58 @@
+<nav class="ie-admin-account-nav" aria-label="Account">
+  <a
+    class="ie-icon-button"
+    href="<%= Settings.ui.url %>"
+    target="_blank"
+    rel="noopener noreferrer"
+    title="Open InfoEducație website"
+  >
+    <i class="fas fa-external-link-alt" aria-hidden="true"></i>
+    <span class="visually-hidden">Open InfoEducație website</span>
+  </a>
+
+  <% if _current_user %>
+    <% display_name = _current_user.try(:name).presence || _current_user.email %>
+    <% initials = display_name.split.map { |part| part.first }.first(2).join.upcase %>
+    <div class="dropdown ie-user-menu">
+      <button
+        class="ie-user-menu__trigger"
+        type="button"
+        data-bs-toggle="dropdown"
+        aria-expanded="false"
+      >
+        <span class="ie-user-menu__avatar" aria-hidden="true"><%= initials %></span>
+        <span class="ie-user-menu__text">
+          <strong><%= display_name %></strong>
+          <small><%= _current_user.email %></small>
+        </span>
+        <i class="fas fa-chevron-down" aria-hidden="true"></i>
+      </button>
+
+      <div class="dropdown-menu dropdown-menu-end ie-user-menu__dropdown">
+        <div class="ie-user-menu__identity">
+          <strong><%= display_name %></strong>
+          <span><%= _current_user.email %></span>
+        </div>
+        <div class="dropdown-divider"></div>
+        <div class="ie-user-menu__profile-link">
+          <i class="fas fa-user-cog" aria-hidden="true"></i>
+          <%= edit_user_link %>
+        </div>
+        <%= link_to dashboard_path, class: "dropdown-item" do %>
+          <i class="fas fa-th-large" aria-hidden="true"></i>
+          Dashboard
+        <% end %>
+        <% if logout_path.present? %>
+          <div class="dropdown-divider"></div>
+          <%= link_to logout_path,
+            method: logout_method,
+            class: "dropdown-item ie-user-menu__logout",
+            data: {turbo: "false"} do %>
+            <i class="fas fa-sign-out-alt" aria-hidden="true"></i>
+            <%= t("admin.misc.log_out") %>
+          <% end %>
+        <% end %>
+      </div>
+    </div>
+  <% end %>
+</nav>

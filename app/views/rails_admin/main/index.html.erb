@@ -1,0 +1,350 @@
+<%
+  query = params[:query]
+  params = request.params.except(
+    :authenticity_token,
+    :action,
+    :controller,
+    :utf8,
+    :bulk_export
+  )
+  params.delete(:query) if params[:query].blank?
+  params.delete(:sort_reverse) unless params[:sort_reverse] == "true"
+  sort_reverse = params[:sort_reverse]
+  sort = params[:sort]
+  params.delete(:sort) if params[:sort] == @model_config.list.sort_by.to_s
+  export_action = RailsAdmin::Config::Actions.find(
+    :export,
+    controller: self.controller,
+    abstract_model: @abstract_model
+  )
+  export_action = nil unless export_action &&
+    authorized?(export_action.authorization_key, @abstract_model)
+  description = RailsAdmin.config(@abstract_model.model_name).description
+  properties = @model_config.list.with(
+    controller: self.controller,
+    view: self,
+    object: @abstract_model.model.new
+  ).fields_for_table
+  checkboxes = @model_config.list.checkboxes?
+  table_table_header_count = (checkboxes ? 1 : 0) + properties.count + 1
+  sortable_properties = properties.select(&:sortable)
+%>
+
+<% content_for :contextual_tabs do %>
+  <% if filterable_fields.present? %>
+    <li class="nav-item dropdown">
+      <a
+        class="nav-link dropdown-toggle"
+        data-bs-toggle="dropdown"
+        href="#"
+        aria-expanded="false"
+      >
+        <i class="fas fa-filter" aria-hidden="true"></i>
+        <%= t("admin.misc.add_filter") %>
+      </a>
+      <ul class="dropdown-menu dropdown-menu-end" id="filters">
+        <% filterable_fields.each do |field| %>
+          <li>
+            <a
+              href="#"
+              class="dropdown-item"
+              data-options="<%= field.with(view: self).filter_options.to_json %>"
+            >
+              <%= field.label %>
+            </a>
+          </li>
+        <% end %>
+      </ul>
+    </li>
+  <% end %>
+  <%= bulk_menu if checkboxes %>
+<% end %>
+
+<style>
+  <% properties.select { |property| property.column_width.present? }.each do |property| %>
+    <%= "#list th.#{property.css_class} { width: #{property.column_width}px; min-width: #{property.column_width}px; }" %>
+    <%= "#list td.#{property.css_class} { max-width: #{property.column_width}px; }" %>
+  <% end %>
+</style>
+
+<div class="ie-index-page" id="list">
+  <%= form_tag(
+    index_path(params.except(*%w[page f query])),
+    method: :get,
+    class: "ie-list-filter-form"
+  ) do %>
+    <section class="ie-list-toolbar" aria-label="Search and filters">
+      <div
+        class="row ie-list-filters"
+        data-options="<%= ordered_filter_options.to_json %>"
+        id="filters_box"
+      ></div>
+      <hr
+        class="filters_box"
+        style="display: <%= ordered_filters.empty? ? "none" : "block" %>"
+      >
+
+      <div class="ie-list-toolbar__row">
+        <div class="ie-list-toolbar__search">
+          <label class="visually-hidden" for="admin-list-query">
+            <%= t("admin.misc.search") %> <%= @model_config.label_plural %>
+          </label>
+          <div class="input-group">
+            <span class="input-group-text" aria-hidden="true">
+              <i class="fas fa-search"></i>
+            </span>
+            <input
+              class="form-control"
+              id="admin-list-query"
+              name="query"
+              placeholder="<%= t("admin.misc.search") %> <%= @model_config.label_plural.downcase %>"
+              type="search"
+              value="<%= query %>"
+            >
+            <button
+              class="btn btn-primary"
+              data-disable-with="<%= t("admin.misc.refresh") %>"
+              type="submit"
+            >
+              <span><%= t("admin.misc.search") %></span>
+            </button>
+            <button
+              class="btn btn-outline-secondary"
+              id="remove_filter"
+              type="button"
+              title="<%= t("admin.misc.reset_filters") %>"
+              aria-label="<%= t("admin.misc.reset_filters") %>"
+            >
+              <i class="fas fa-times" aria-hidden="true"></i>
+            </button>
+          </div>
+          <% if @model_config.list.search_help.present? %>
+            <div class="form-text"><%= @model_config.list.search_help %></div>
+          <% end %>
+        </div>
+
+        <div class="ie-list-toolbar__actions">
+          <% if sortable_properties.present? %>
+            <div class="dropdown ie-mobile-sort">
+              <button
+                class="btn btn-outline-secondary dropdown-toggle"
+                type="button"
+                data-bs-toggle="dropdown"
+                aria-expanded="false"
+              >
+                <i class="fas fa-sort-amount-down" aria-hidden="true"></i>
+                Sort
+              </button>
+              <ul class="dropdown-menu dropdown-menu-end">
+                <% sortable_properties.each do |property| %>
+                  <% selected = sort == property.name.to_s %>
+                  <% sort_location = index_path(
+                    params.except("sort_reverse", "page").merge(
+                      sort: property.name
+                    ).merge(
+                      selected && sort_reverse != "true" ?
+                        {sort_reverse: "true"} :
+                        {}
+                    )
+                  ) %>
+                  <li>
+                    <%= link_to sort_location,
+                      class: "dropdown-item #{selected ? "active" : ""}" do %>
+                      <%= property.label %>
+                      <% if selected %>
+                        <i
+                          class="fas <%= sort_reverse == "true" ? "fa-sort-up" : "fa-sort-down" %>"
+                          aria-hidden="true"
+                        ></i>
+                      <% end %>
+                    <% end %>
+                  </li>
+                <% end %>
+              </ul>
+            </div>
+          <% end %>
+
+          <% if export_action %>
+            <%= link_to export_path(params.except("page")),
+              class: "btn btn-outline-secondary" do %>
+              <i class="fas fa-file-export" aria-hidden="true"></i>
+              <%= wording_for(:link, export_action) %>
+            <% end %>
+          <% end %>
+        </div>
+      </div>
+    </section>
+  <% end %>
+
+  <% unless @model_config.list.scopes.empty? %>
+    <nav class="ie-scope-nav" aria-label="Record status">
+      <ul class="nav" id="scope_selector">
+        <% @model_config.list.scopes.each_with_index do |scope, index| %>
+          <% scope = "_all" if scope.nil? %>
+          <% active = scope.to_s == params[:scope] ||
+            (params[:scope].blank? && index.zero?) %>
+          <li class="nav-item">
+            <a
+              href="<%= index_path(params.merge(scope: scope, page: nil)) %>"
+              class="nav-link <%= "active" if active %>"
+              <%= "aria-current=\"page\"".html_safe if active %>
+            >
+              <%= I18n.t(
+                "admin.scopes.#{@abstract_model.to_param}.#{scope}",
+                default: I18n.t(
+                  "admin.scopes.#{scope}",
+                  default: scope.to_s.titleize
+                )
+              ) %>
+            </a>
+          </li>
+        <% end %>
+      </ul>
+    </nav>
+  <% end %>
+
+  <%= form_tag(
+    bulk_action_path(model_name: @abstract_model.to_param),
+    method: :post,
+    id: "bulk_form",
+    class: "form ie-list-form"
+  ) do %>
+    <%= hidden_field_tag :bulk_action %>
+
+    <% if description.present? %>
+      <p class="ie-model-description"><%= description %></p>
+    <% end %>
+
+    <div
+      class="ie-data-table-wrap"
+      id="sidescroll"
+      tabindex="0"
+      aria-label="<%= @model_config.label_plural %> table"
+    >
+      <table class="table ie-data-table">
+        <caption class="visually-hidden">
+          <%= @model_config.label_plural %>
+        </caption>
+        <thead>
+          <tr>
+            <% if checkboxes %>
+              <th class="shrink sticky ie-select-column">
+                <input
+                  class="toggle"
+                  type="checkbox"
+                  aria-label="Select all records"
+                >
+              </th>
+            <% end %>
+            <% properties.each do |property| %>
+              <% selected = sort == property.name.to_s %>
+              <% if property.sortable %>
+                <% sort_location = index_path(
+                  params.except("sort_reverse", "page").merge(
+                    sort: property.name
+                  ).merge(
+                    selected && sort_reverse != "true" ?
+                      {sort_reverse: "true"} :
+                      {}
+                  )
+                ) %>
+                <% sort_direction = (
+                  sort_reverse == "true" ? "headerSortUp" : "headerSortDown"
+                ) if selected %>
+              <% end %>
+              <th
+                class="<%= [
+                  property.sortable && "header",
+                  property.sortable && sort_direction,
+                  property.sticky? && "sticky",
+                  property.css_class,
+                  property.type_css_class
+                ].select(&:present?).join(" ") %>"
+                data-href="<%= property.sortable && sort_location %>"
+                title="<%= property.hint %>"
+              >
+                <%= property.label %>
+              </th>
+            <% end %>
+            <th class="last shrink ie-actions-column">
+              <span class="visually-hidden">Actions</span>
+            </th>
+          </tr>
+        </thead>
+        <tbody>
+          <% @objects.each do |object| %>
+            <tr class="<%= @abstract_model.param_key %>_row <%= @model_config.list.with(object: object).row_css_class %>">
+              <% if checkboxes %>
+                <td class="sticky ie-select-column" data-label="Select">
+                  <%= check_box_tag(
+                    "bulk_ids[]",
+                    object.id.to_s,
+                    false,
+                    aria: {label: "Select #{object.try(@model_config.object_label_method)}"}
+                  ) %>
+                </td>
+              <% end %>
+              <% properties.map { |property| property.bind(:object, object) }.each do |property| %>
+                <% value = property.pretty_value %>
+                <%= content_tag(
+                  :td,
+                  value,
+                  class: [
+                    property.sticky? && "sticky",
+                    property.css_class,
+                    property.type_css_class
+                  ].select(&:present?),
+                  title: strip_tags(value.to_s),
+                  data: {label: property.label}
+                ) %>
+              <% end %>
+              <td
+                class="last links ra-sidescroll-frozen ie-actions-column"
+                data-label="Actions"
+              >
+                <ul class="nav ie-row-actions">
+                  <%= menu_for :member, @abstract_model, object, true %>
+                </ul>
+              </td>
+            </tr>
+          <% end %>
+          <% if @objects.empty? %>
+            <tr class="empty_row">
+              <td colspan="<%= table_table_header_count %>">
+                <div class="ie-empty-state">
+                  <i class="fas fa-inbox" aria-hidden="true"></i>
+                  <strong><%= I18n.t("admin.actions.index.no_records") %></strong>
+                </div>
+              </td>
+            </tr>
+          <% end %>
+        </tbody>
+      </table>
+    </div>
+
+    <footer class="ie-list-footer">
+      <% if @model_config.list.limited_pagination %>
+        <%= paginate(
+          @objects,
+          theme: "ra-twitter-bootstrap/without_count",
+          total_pages: Float::INFINITY
+        ) %>
+      <% elsif @objects.respond_to?(:total_count) %>
+        <% total_count = @objects.total_count.to_i %>
+        <%= paginate(@objects, theme: "ra-twitter-bootstrap") %>
+        <%= link_to(
+          t("admin.misc.show_all"),
+          index_path(params.merge(all: true)),
+          class: "show-all btn btn-outline-secondary"
+        ) unless total_count > 100 || total_count <= @objects.to_a.size %>
+        <span class="total-count">
+          <%= "#{number_with_delimiter(total_count)} #{@model_config.pluralize(total_count).downcase}" %>
+        </span>
+      <% else %>
+        <span class="total-count">
+          <%= "#{number_with_delimiter(@objects.size)} #{@model_config.pluralize(@objects.size).downcase}" %>
+        </span>
+      <% end %>
+    </footer>
+  <% end %>
+</div>

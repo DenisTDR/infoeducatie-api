@@ -1,0 +1,104 @@
+<% if @abstract_models %>
+  <%
+    icons = {
+      "Project" => "fas fa-laptop-code",
+      "Contestant" => "fas fa-user-graduate",
+      "Edition" => "fas fa-calendar-alt",
+      "Teacher" => "fas fa-chalkboard-teacher",
+      "Screenshot" => "fas fa-images",
+      "User" => "fas fa-users",
+      "News" => "fas fa-newspaper",
+      "Talk" => "fas fa-microphone",
+      "Alumnus" => "fas fa-user-check",
+      "ApiCredential" => "fas fa-key",
+      "Ckeditor::Asset" => "fas fa-photo-video",
+      "Ckeditor::AttachmentFile" => "fas fa-paperclip",
+      "Ckeditor::Picture" => "fas fa-image"
+    }
+    primary_models = %w[Project Contestant User Edition].filter_map do |name|
+      @abstract_models.find { |model| model.model.name == name }
+    end
+  %>
+
+  <section class="ie-dashboard-section" aria-labelledby="dashboard-overview-title">
+    <header class="ie-section-heading">
+      <h2 id="dashboard-overview-title">Overview</h2>
+    </header>
+
+    <div class="ie-dashboard-stats">
+      <% primary_models.each do |abstract_model| %>
+        <% next unless authorized?(:index, abstract_model) %>
+        <% model_name = abstract_model.model.name %>
+        <% count = @count[model_name].to_i %>
+        <%= link_to index_path(model_name: abstract_model.to_param),
+          class: "ie-dashboard-stat" do %>
+          <span class="ie-dashboard-stat__icon" aria-hidden="true">
+            <i class="<%= icons.fetch(model_name, "fas fa-database") %>"></i>
+          </span>
+          <span class="ie-dashboard-stat__body">
+            <span><%= abstract_model.config.label_plural %></span>
+            <strong><%= number_with_delimiter(count) %></strong>
+          </span>
+          <i class="fas fa-arrow-right ie-dashboard-stat__arrow" aria-hidden="true"></i>
+        <% end %>
+      <% end %>
+    </div>
+  </section>
+
+  <section class="ie-dashboard-section" aria-labelledby="dashboard-resources-title">
+    <header class="ie-section-heading">
+      <h2 id="dashboard-resources-title">All resources</h2>
+    </header>
+
+    <div class="ie-resource-list" role="list">
+      <% @abstract_models.each do |abstract_model| %>
+        <% next unless authorized?(:index, abstract_model) %>
+        <% model_name = abstract_model.model.name %>
+        <% resource_path = index_path(model_name: abstract_model.to_param) %>
+        <% last_created = @most_recent_created[model_name] %>
+        <article class="ie-resource-row" role="listitem">
+          <%= link_to resource_path, class: "ie-resource-row__primary" do %>
+            <span class="ie-resource-row__icon" aria-hidden="true">
+              <i class="<%= icons.fetch(model_name, "fas fa-database") %>"></i>
+            </span>
+            <span class="ie-resource-row__name">
+              <strong><%= abstract_model.config.label_plural %></strong>
+              <small>
+                <% if last_created %>
+                  Updated
+                  <%= t(
+                    "admin.misc.time_ago",
+                    time: time_ago_in_words(last_created),
+                    default: "#{time_ago_in_words(last_created)} #{t("admin.misc.ago")}"
+                  ) %>
+                <% else %>
+                  No records created yet
+                <% end %>
+              </small>
+            </span>
+          <% end %>
+
+          <span class="ie-resource-row__count">
+            <strong><%= number_with_delimiter(@count[model_name].to_i) %></strong>
+            <small>records</small>
+          </span>
+
+          <ul class="nav ie-resource-row__actions" aria-label="<%= abstract_model.config.label_plural %> actions">
+            <%= menu_for :collection, abstract_model, nil, true %>
+          </ul>
+        </article>
+      <% end %>
+    </div>
+  </section>
+<% end %>
+
+<% if @history && authorized?(:history_index) %>
+  <section class="ie-dashboard-section" aria-labelledby="dashboard-history-title">
+    <header class="ie-section-heading">
+      <h2 id="dashboard-history-title">
+        <%= t("admin.actions.history_index.menu") %>
+      </h2>
+    </header>
+    <%= render partial: "rails_admin/main/dashboard_history" %>
+  </section>
+<% end %>

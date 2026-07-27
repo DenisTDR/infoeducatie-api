@@ -82,12 +82,21 @@ class User < ActiveRecord::Base
 
   rails_admin do
     edit do
-      field :email
-      field :first_name
-      field :last_name
-      field :job
+      field :email do
+        html_attributes autocomplete: "email"
+      end
+      field :first_name do
+        html_attributes autocomplete: "given-name"
+      end
+      field :last_name do
+        html_attributes autocomplete: "family-name"
+      end
+      field :job do
+        html_attributes autocomplete: "organization-title"
+      end
       field :roles
       field :password do
+        html_attributes autocomplete: "new-password"
         # RailsAdmin 3.3 cannot render Devise 5's callable length validators.
         help do
           range = User.password_length
