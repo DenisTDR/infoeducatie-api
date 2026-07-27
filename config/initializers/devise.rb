@@ -23,8 +23,8 @@ Devise.setup do |config|
     end
   end
 
-  # Configure the class responsible to send e-mails.
-  # config.mailer = 'Devise::Mailer'
+  # Deliver authentication emails outside the request cycle with retries.
+  config.mailer = "DeviseMailer"
 
   # ==> ORM configuration
   # Load and configure the ORM. Supports :active_record (default) and

@@ -46,13 +46,19 @@ RSpec.describe "RailsAdmin actions", type: :request do
               email: email,
               first_name: "New",
               last_name: "User",
-              password: "TestP4ssW0rd"
+              password: "TestP4ssW0rd",
+              role_ids: [
+                Role.find_by!(name: "registered").id,
+                Role.find_by!(name: "admin").id
+              ]
             }
           }
       }.to change(User, :count).by(1)
+        .and have_enqueued_job(DeviseMailDeliveryJob)
 
       expect(response).to have_http_status(:redirect)
-      expect(User.find_by!(email: email).roles.pluck(:name)).to include(
+      expect(User.find_by!(email: email).roles.pluck(:name)).to contain_exactly(
+        "admin",
         "registered"
       )
     end

@@ -29,8 +29,9 @@ class User < ActiveRecord::Base
   validates :first_name, presence: true
   validates :last_name , presence: true
 
+  before_validation :set_default_role, on: :create
   after_commit :update_access_token!, on: :create
-  after_create :set_default_role
+  after_commit :send_pending_devise_notifications
 
   def update_projects_discourse
     projects.each do |p|
@@ -68,7 +69,8 @@ class User < ActiveRecord::Base
   end
 
   def set_default_role
-    roles << Role.find_by!(name: "registered")
+    registered_role = Role.find_by!(name: "registered")
+    roles << registered_role unless roles.to_a.include?(registered_role)
   end
 
   def name
@@ -78,6 +80,35 @@ class User < ActiveRecord::Base
   def increment_registration_step_number!
     self.update_column(:registration_step_number,
                        self.registration_step_number + 1)
+  end
+
+  protected
+
+  def send_devise_notification(notification, *args)
+    if new_record? || saved_changes?
+      pending_devise_notifications << [notification, args]
+    else
+      enqueue_devise_notification(notification, *args)
+    end
+  end
+
+  private
+
+  def send_pending_devise_notifications
+    notifications = pending_devise_notifications.dup
+    pending_devise_notifications.clear
+
+    notifications.each do |notification, args|
+      enqueue_devise_notification(notification, *args)
+    end
+  end
+
+  def pending_devise_notifications
+    @pending_devise_notifications ||= []
+  end
+
+  def enqueue_devise_notification(notification, *args)
+    devise_mailer.send(notification, self, *args).deliver_later
   end
 
   rails_admin do
