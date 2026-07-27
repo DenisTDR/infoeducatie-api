@@ -85,6 +85,10 @@ en:
         breadcrumb: "Edit"
         link: "Edit this %{model_label}"
         done: "updated"
+      confirm_user:
+        title: "Confirm account '%{object_label}'"
+        menu: "Confirm account"
+        breadcrumb: "Confirm account"
       approve_project:
         title: "Approve project '%{object_label}'"
         menu: "Approve"

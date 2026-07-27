@@ -21,6 +21,39 @@ RSpec.describe "RailsAdmin actions", type: :request do
   end
 
   describe "user management" do
+    it "shows manual confirmation only for unconfirmed users" do
+      unconfirmed_user = create(:user)
+
+      get "/internal/admin/user"
+
+      document = Nokogiri::HTML(response.body)
+      expect(
+        document.at_css(
+          "a[href$='/internal/admin/user/#{unconfirmed_user.id}/confirm_user']"
+        )
+      ).to be_present
+      expect(
+        document.at_css(
+          "a[href$='/internal/admin/user/#{admin.id}/confirm_user']"
+        )
+      ).to be_nil
+    end
+
+    it "requires confirmation before manually confirming a user" do
+      user = create(:user)
+
+      get "/internal/admin/user/#{user.id}/confirm_user"
+
+      expect(response).to have_http_status(:ok)
+      expect(response.body).to include("Confirm account?")
+      expect(user.reload).not_to be_confirmed
+
+      post "/internal/admin/user/#{user.id}/confirm_user"
+
+      expect(response).to redirect_to("/internal/admin/user")
+      expect(user.reload).to be_confirmed
+    end
+
     it "renders the new user form with Devise password guidance" do
       get "/internal/admin/user/new"
 

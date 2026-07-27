@@ -614,14 +614,13 @@
 .ie-admin-context-nav {
   border-bottom: 1px solid var(--ie-border);
   margin: 0 0 20px;
-  overflow-x: auto;
-  scrollbar-width: thin;
+  overflow: visible;
 }
 
 .ie-admin-context-nav > .nav {
-  flex-wrap: nowrap;
+  flex-wrap: wrap;
   gap: 2px;
-  min-width: max-content;
+  min-width: 0;
 }
 
 .ie-admin-context-nav .nav-item {
@@ -647,6 +646,13 @@
 .ie-admin-context-nav .nav-link:hover {
   background: var(--ie-white);
   color: var(--ie-black);
+}
+
+.ie-admin-context-nav .dropdown-menu {
+  max-height: calc(100vh - 180px);
+  max-width: calc(100vw - 32px);
+  overflow-y: auto;
+  z-index: 1060;
 }
 
 .ie-admin-context-nav .nav-link.active {

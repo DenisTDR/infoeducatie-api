@@ -61,6 +61,10 @@ RailsAdmin.config do |config|
       only ['Project']
     end
 
+    confirm_user do
+      only ["User"]
+    end
+
     pin_news do
       only ['News']
     end

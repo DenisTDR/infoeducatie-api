@@ -163,6 +163,10 @@ en:
 ro:
   admin:
     actions:
+      confirm_user:
+        title: "Confirma contul '%{object_label}'"
+        menu: "Confirma contul"
+        breadcrumb: "Confirma contul"
       issue_api_credential:
         title: "Genereaza cheie API"
         menu: "Genereaza cheie API"

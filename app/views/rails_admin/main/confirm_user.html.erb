@@ -1,0 +1,8 @@
+<%= render partial: "confirm_admin_action",
+           locals: {
+             title: "Confirm account?",
+             message: "#{@object.email} will be marked as confirmed and can sign in without using the email confirmation link.",
+             button_label: "Confirm account",
+             button_class: "btn-success",
+             icon: "fa-user-check"
+           } %>
