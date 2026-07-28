@@ -1,0 +1,7 @@
+<%= render partial: "rails_admin/main/confirm_admin_action", locals: {
+  title: "Regenerate PIN?",
+  message: "The current PIN and every existing team token for #{@object.name} will stop working.",
+  button_label: "Regenerate PIN",
+  button_class: "btn-warning",
+  icon: "fa-key"
+} %>

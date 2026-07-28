@@ -32,7 +32,9 @@ RailsAdmin.config do |config|
     dashboard                     # mandatory
     index                         # mandatory
     new do
-      except ["ApiCredential", "Ckeditor::Asset", "Ckeditor::AttachmentFile", "Ckeditor::Picture"]
+      except ["ApiCredential", "RoboticsCompetition", "RoboticsTeam",
+              "RoboticsTurn", "RoboticsTimeEntry", "Ckeditor::Asset",
+              "Ckeditor::AttachmentFile", "Ckeditor::Picture"]
     end
     export do
       except ["ApiCredential", "Screenshot", "Ckeditor::Asset", "Ckeditor::AttachmentFile", "Ckeditor::Picture"]
@@ -41,16 +43,23 @@ RailsAdmin.config do |config|
       except ["Ckeditor::Asset", "Ckeditor::AttachmentFile", "Ckeditor::Picture"]
     end
     edit do
-      except ["ApiCredential", "Ckeditor::Asset", "Ckeditor::AttachmentFile", "Ckeditor::Picture"]
+      except ["ApiCredential", "RoboticsTurn", "RoboticsTimeEntry",
+              "Ckeditor::Asset", "Ckeditor::AttachmentFile",
+              "Ckeditor::Picture"]
     end
     delete do
-      except ["ApiCredential", "Project", "Contestant"]
+      except ["ApiCredential", "Project", "Contestant",
+              "RoboticsCompetition", "RoboticsTeam", "RoboticsTurn",
+              "RoboticsTimeEntry"]
     end
     bulk_delete do
-      except ["ApiCredential", "Project", "Contestant"]
+      except ["ApiCredential", "Project", "Contestant",
+              "RoboticsCompetition", "RoboticsTeam", "RoboticsTurn",
+              "RoboticsTimeEntry"]
     end
     show_in_app do
-      except ["ApiCredential"]
+      except ["ApiCredential", "RoboticsCompetition", "RoboticsTeam",
+              "RoboticsTurn", "RoboticsTimeEntry"]
     end
 
     approve_project do
@@ -77,6 +86,22 @@ RailsAdmin.config do |config|
       only ["ApiCredential"]
     end
 
+    create_robotics_competition do
+      only ["RoboticsCompetition"]
+    end
+
+    adjust_robotics_team_time do
+      only ["RoboticsTeam"]
+    end
+
+    regenerate_robotics_team_pin do
+      only ["RoboticsTeam"]
+    end
+
+    force_stop_robotics_turn do
+      only ["RoboticsTurn"]
+    end
+
     ## With an audit adapter, you can add:
     # history_index
     # history_show
@@ -93,7 +118,9 @@ RailsAdmin.config do |config|
   config.included_models = ["ApiCredential", "Project", "Contestant", "User", "Talk",
                             "Screenshot", "Edition", "News", "Ckeditor::Asset",
                             "Ckeditor::AttachmentFile", "Ckeditor::Picture",
-                            "Alumnus", "Teacher"]
+                            "Alumnus", "Teacher", "RoboticsCompetition",
+                            "RoboticsTeam", "RoboticsTurn",
+                            "RoboticsTimeEntry"]
 
   {
     "Project" => ["Competition", "fas fa-laptop-code", 10],
@@ -108,7 +135,11 @@ RailsAdmin.config do |config|
     "ApiCredential" => ["Security", "fas fa-key", 100],
     "Ckeditor::Asset" => ["Editor media", "fas fa-photo-video", 110],
     "Ckeditor::AttachmentFile" => ["Editor media", "fas fa-paperclip", 120],
-    "Ckeditor::Picture" => ["Editor media", "fas fa-image", 130]
+    "Ckeditor::Picture" => ["Editor media", "fas fa-image", 130],
+    "RoboticsCompetition" => ["Robotics", "fas fa-flag-checkered", 10],
+    "RoboticsTeam" => ["Robotics", "fas fa-users", 20],
+    "RoboticsTurn" => ["Robotics", "fas fa-stopwatch", 30],
+    "RoboticsTimeEntry" => ["Robotics", "fas fa-clock", 40]
   }.each do |model_name, (nav_label, nav_icon, nav_weight)|
     config.model model_name do
       navigation_label nav_label

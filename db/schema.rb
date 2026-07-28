@@ -11,7 +11,7 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema[8.1].define(version: 2026_07_23_090000) do
+ActiveRecord::Schema[8.1].define(version: 2026_07_29_090000) do
 
   # These are extensions that must be enabled in order to support this database
   enable_extension "plpgsql"
@@ -178,6 +178,111 @@ ActiveRecord::Schema[8.1].define(version: 2026_07_23_090000) do
   add_index "rights", ["role_id"], name: "index_rights_on_role_id", using: :btree
   add_index "rights", ["user_id"], name: "index_rights_on_user_id", using: :btree
 
+  create_table "robotics_competitions", force: :cascade do |t|
+    t.string   "name",                                     null: false
+    t.string   "slug",                                     null: false
+    t.datetime "starts_at",                                null: false
+    t.integer  "duration_seconds",         default: 72000, null: false
+    t.integer  "team_allocation_seconds",  default: 10800, null: false
+    t.integer  "turn_duration_seconds",    default: 600,   null: false
+    t.integer  "claim_window_seconds",     default: 60,    null: false
+    t.integer  "turnover_seconds",         default: 60,    null: false
+    t.bigint   "queue_sequence",           default: 0,     null: false
+    t.bigint   "turn_sequence",            default: 0,     null: false
+    t.datetime "created_at",                               null: false
+    t.datetime "updated_at",                               null: false
+  end
+
+  add_index "robotics_competitions", ["slug"], name: "index_robotics_competitions_on_slug", unique: true, using: :btree
+  add_check_constraint "robotics_competitions", "duration_seconds > 0", name: "robotics_competitions_duration_positive"
+  add_check_constraint "robotics_competitions", "team_allocation_seconds > 0", name: "robotics_competitions_allocation_positive"
+  add_check_constraint "robotics_competitions", "turn_duration_seconds > 0 AND turn_duration_seconds <= duration_seconds", name: "robotics_competitions_turn_duration_valid"
+  add_check_constraint "robotics_competitions", "claim_window_seconds > 0", name: "robotics_competitions_claim_window_positive"
+  add_check_constraint "robotics_competitions", "turnover_seconds >= 0", name: "robotics_competitions_turnover_nonnegative"
+
+  create_table "robotics_teams", force: :cascade do |t|
+    t.bigint   "robotics_competition_id",                  null: false
+    t.string   "name",                                     null: false
+    t.integer  "position",                                 null: false
+    t.string   "pin_digest",                               null: false
+    t.string   "pin_fingerprint",                          null: false
+    t.integer  "authentication_version", default: 0,       null: false
+    t.boolean  "enabled",                default: true,    null: false
+    t.boolean  "ready",                  default: false,   null: false
+    t.datetime "cooldown_until"
+    t.datetime "created_at",                               null: false
+    t.datetime "updated_at",                               null: false
+  end
+
+  add_index "robotics_teams", ["robotics_competition_id"], name: "index_robotics_teams_on_robotics_competition_id", using: :btree
+  add_index "robotics_teams", ["robotics_competition_id", "name"], name: "index_robotics_teams_on_robotics_competition_id_and_name", unique: true, using: :btree
+  add_index "robotics_teams", ["robotics_competition_id", "position"], name: "index_robotics_teams_on_robotics_competition_id_and_position", unique: true, using: :btree
+  add_index "robotics_teams", ["robotics_competition_id", "pin_fingerprint"], name: "index_robotics_teams_on_competition_and_pin", unique: true, using: :btree
+  add_check_constraint "robotics_teams", "position > 0", name: "robotics_teams_position_positive"
+
+  create_table "robotics_queue_entries", force: :cascade do |t|
+    t.bigint   "robotics_competition_id", null: false
+    t.bigint   "robotics_team_id",        null: false
+    t.bigint   "sequence_number",         null: false
+    t.datetime "requested_at",            null: false
+    t.datetime "created_at",              null: false
+    t.datetime "updated_at",              null: false
+  end
+
+  add_index "robotics_queue_entries", ["robotics_competition_id"], name: "index_robotics_queue_entries_on_robotics_competition_id", using: :btree
+  add_index "robotics_queue_entries", ["robotics_team_id"], name: "index_robotics_queue_entries_on_robotics_team_id", unique: true, using: :btree
+  add_index "robotics_queue_entries", ["robotics_competition_id", "sequence_number"], name: "index_robotics_queue_on_competition_and_sequence", unique: true, using: :btree
+
+  create_table "robotics_turns", force: :cascade do |t|
+    t.bigint   "robotics_competition_id", null: false
+    t.bigint   "robotics_team_id",        null: false
+    t.bigint   "sequence_number",         null: false
+    t.string   "state",                   null: false
+    t.datetime "offered_at",              null: false
+    t.datetime "offer_expires_at",        null: false
+    t.datetime "started_at"
+    t.datetime "session_ends_at"
+    t.datetime "ended_at"
+    t.datetime "turnover_ends_at"
+    t.integer  "reserved_seconds"
+    t.integer  "charged_seconds"
+    t.string   "stop_reason"
+    t.integer  "stopped_by_id"
+    t.datetime "created_at",              null: false
+    t.datetime "updated_at",              null: false
+  end
+
+  add_index "robotics_turns", ["robotics_competition_id"], name: "index_robotics_turns_on_robotics_competition_id", using: :btree
+  add_index "robotics_turns", ["robotics_team_id"], name: "index_robotics_turns_on_robotics_team_id", using: :btree
+  add_index "robotics_turns", ["stopped_by_id"], name: "index_robotics_turns_on_stopped_by_id", using: :btree
+  add_index "robotics_turns", ["robotics_competition_id", "sequence_number"], name: "index_robotics_turns_on_competition_and_sequence", unique: true, using: :btree
+  add_index "robotics_turns", ["robotics_competition_id"], name: "index_robotics_turns_one_live_lease", unique: true, where: "state IN ('offered', 'active', 'turnover')", using: :btree
+  add_check_constraint "robotics_turns", "state IN ('offered', 'active', 'turnover', 'completed', 'passed', 'expired', 'withdrawn')", name: "robotics_turns_state_valid"
+  add_check_constraint "robotics_turns", "offer_expires_at >= offered_at", name: "robotics_turns_offer_window_valid"
+  add_check_constraint "robotics_turns", "reserved_seconds IS NULL OR reserved_seconds > 0", name: "robotics_turns_reserved_positive"
+  add_check_constraint "robotics_turns", "charged_seconds IS NULL OR charged_seconds >= 0", name: "robotics_turns_charged_nonnegative"
+
+  create_table "robotics_time_entries", force: :cascade do |t|
+    t.bigint   "robotics_competition_id", null: false
+    t.bigint   "robotics_team_id",        null: false
+    t.bigint   "robotics_turn_id"
+    t.string   "kind",                    null: false
+    t.integer  "amount_seconds",          null: false
+    t.text     "reason",                  null: false
+    t.integer  "actor_id"
+    t.datetime "created_at",              null: false
+    t.datetime "updated_at",              null: false
+  end
+
+  add_index "robotics_time_entries", ["robotics_competition_id"], name: "index_robotics_time_entries_on_robotics_competition_id", using: :btree
+  add_index "robotics_time_entries", ["robotics_team_id"], name: "index_robotics_time_entries_on_robotics_team_id", using: :btree
+  add_index "robotics_time_entries", ["robotics_turn_id"], name: "index_robotics_time_entries_on_robotics_turn_id", unique: true, where: "robotics_turn_id IS NOT NULL", using: :btree
+  add_index "robotics_time_entries", ["actor_id"], name: "index_robotics_time_entries_on_actor_id", using: :btree
+  add_index "robotics_time_entries", ["robotics_team_id"], name: "index_robotics_time_entries_one_initial_grant", unique: true, where: "kind = 'initial_grant'", using: :btree
+  add_index "robotics_time_entries", ["robotics_team_id", "created_at"], name: "index_robotics_time_entries_on_robotics_team_id_and_created_at", using: :btree
+  add_check_constraint "robotics_time_entries", "kind IN ('initial_grant', 'session_usage', 'admin_adjustment')", name: "robotics_time_entries_kind_valid"
+  add_check_constraint "robotics_time_entries", "amount_seconds <> 0", name: "robotics_time_entries_amount_nonzero"
+
   create_table "roles", force: :cascade do |t|
     t.string   "name"
     t.datetime "created_at", null: false
@@ -260,4 +365,14 @@ ActiveRecord::Schema[8.1].define(version: 2026_07_23_090000) do
 
   add_foreign_key "api_credentials", "users", column: "created_by_id", on_delete: :nullify
   add_foreign_key "api_credentials", "users", column: "revoked_by_id", on_delete: :nullify
+  add_foreign_key "robotics_queue_entries", "robotics_competitions", on_delete: :cascade
+  add_foreign_key "robotics_queue_entries", "robotics_teams", on_delete: :cascade
+  add_foreign_key "robotics_teams", "robotics_competitions", on_delete: :cascade
+  add_foreign_key "robotics_time_entries", "robotics_competitions", on_delete: :cascade
+  add_foreign_key "robotics_time_entries", "robotics_teams", on_delete: :restrict
+  add_foreign_key "robotics_time_entries", "robotics_turns", on_delete: :restrict
+  add_foreign_key "robotics_time_entries", "users", column: "actor_id", on_delete: :nullify
+  add_foreign_key "robotics_turns", "robotics_competitions", on_delete: :cascade
+  add_foreign_key "robotics_turns", "robotics_teams", on_delete: :restrict
+  add_foreign_key "robotics_turns", "users", column: "stopped_by_id", on_delete: :nullify
 end

@@ -4,12 +4,14 @@ RSpec.configure do |config|
     Rails.application.load_seed
   end
 
-  config.before do
-    DatabaseCleaner.strategy = :transaction
+  config.before do |example|
+    DatabaseCleaner.strategy =
+      example.metadata[:concurrent] ? :deletion : :transaction
     DatabaseCleaner.start
   end
 
-  config.after do
+  config.after do |example|
     DatabaseCleaner.clean
+    Rails.application.load_seed if example.metadata[:concurrent]
   end
 end

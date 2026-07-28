@@ -1,0 +1,87 @@
+<section class="ie-api-key-panel">
+  <h3>Create a robotics competition</h3>
+  <p>
+    The competition and all team PINs are generated together. PINs are shown
+    only once on the next screen.
+  </p>
+
+  <% if @creation_error %>
+    <div class="alert alert-danger" role="alert">
+      <strong>Competition could not be created.</strong>
+      <%= @creation_error.message %>
+    </div>
+  <% end %>
+
+  <% values = @defaults.merge((@submitted || {}).symbolize_keys) %>
+  <%= form_tag request.path, method: :post do %>
+    <div class="form-group">
+      <%= label_tag "robotics_competition_name", "Name" %>
+      <%= text_field_tag "robotics_competition[name]", values[:name],
+        class: "form-control", required: true, maxlength: 120 %>
+    </div>
+
+    <div class="form-group">
+      <%= label_tag "robotics_competition_slug", "Public URL slug" %>
+      <%= text_field_tag "robotics_competition[slug]", values[:slug],
+        class: "form-control", placeholder: "robotics-2026" %>
+      <p class="help-block">Leave blank to derive it from the name.</p>
+    </div>
+
+    <div class="form-group">
+      <%= label_tag "robotics_competition_starts_at", "Starts at" %>
+      <%= datetime_local_field_tag "robotics_competition[starts_at]",
+        values[:starts_at], class: "form-control", required: true %>
+      <p class="help-block">Time zone: <%= Time.zone.name %>.</p>
+    </div>
+
+    <div class="row">
+      <div class="col-md-4 form-group">
+        <%= label_tag "robotics_competition_duration_hours", "Duration (hours)" %>
+        <%= number_field_tag "robotics_competition[duration_hours]",
+          values[:duration_hours], class: "form-control", min: 1, required: true %>
+      </div>
+      <div class="col-md-4 form-group">
+        <%= label_tag "robotics_competition_team_count", "Teams" %>
+        <%= number_field_tag "robotics_competition[team_count]",
+          values[:team_count], class: "form-control", min: 1, max: 20,
+          required: true %>
+      </div>
+      <div class="col-md-4 form-group">
+        <%= label_tag "robotics_competition_team_allocation_minutes",
+          "Time per team (minutes)" %>
+        <%= number_field_tag "robotics_competition[team_allocation_minutes]",
+          values[:team_allocation_minutes], class: "form-control", min: 1,
+          required: true %>
+      </div>
+    </div>
+
+    <div class="row">
+      <div class="col-md-4 form-group">
+        <%= label_tag "robotics_competition_turn_duration_minutes",
+          "Turn length (minutes)" %>
+        <%= number_field_tag "robotics_competition[turn_duration_minutes]",
+          values[:turn_duration_minutes], class: "form-control", min: 1,
+          required: true %>
+      </div>
+      <div class="col-md-4 form-group">
+        <%= label_tag "robotics_competition_claim_window_seconds",
+          "Claim window (seconds)" %>
+        <%= number_field_tag "robotics_competition[claim_window_seconds]",
+          values[:claim_window_seconds], class: "form-control", min: 1,
+          required: true %>
+      </div>
+      <div class="col-md-4 form-group">
+        <%= label_tag "robotics_competition_turnover_seconds",
+          "Turnover (seconds)" %>
+        <%= number_field_tag "robotics_competition[turnover_seconds]",
+          values[:turnover_seconds], class: "form-control", min: 0,
+          required: true %>
+      </div>
+    </div>
+
+    <div class="form-actions">
+      <%= submit_tag "Create and generate PINs", class: "btn btn-primary" %>
+      <%= link_to "Cancel", index_path, class: "btn btn-default" %>
+    </div>
+  <% end %>
+</section>

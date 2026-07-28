@@ -53,6 +53,18 @@ Rails.application.routes.draw do
       get :competition_data, to: "competition_data#show"
     end
 
+    namespace :robotics do
+      resources :competitions, param: :slug, only: [:show] do
+        member do
+          post :authenticate
+          put :readiness
+          post :claim
+          post :pass
+          post :stop
+        end
+      end
+    end
+
     get "current" => "current#index"
   end
 

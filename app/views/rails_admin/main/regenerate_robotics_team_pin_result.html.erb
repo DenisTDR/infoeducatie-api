@@ -1,0 +1,20 @@
+<section class="ie-api-key-panel ie-api-key-panel--result">
+  <div class="alert alert-success" role="status">
+    <strong>PIN regenerated for <%= @object.name %>.</strong>
+    Existing team tokens have been invalidated.
+  </div>
+  <p>This PIN is shown once. Store it before leaving this page.</p>
+  <div class="ie-api-key-secret">
+    <label for="issued-robotics-pin">New PIN</label>
+    <input id="issued-robotics-pin"
+           class="form-control ie-api-key-secret__value"
+           type="text"
+           value="<%= @plaintext_pin %>"
+           readonly
+           autocomplete="off"
+           spellcheck="false">
+  </div>
+  <div class="form-actions">
+    <%= link_to "I have stored the PIN", index_path, class: "btn btn-primary" %>
+  </div>
+</section>

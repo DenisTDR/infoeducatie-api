@@ -1,0 +1,45 @@
+<section class="ie-api-key-panel ie-api-key-panel--result">
+  <div class="alert alert-success" role="status">
+    <strong>Robotics competition created.</strong>
+    Store or print these PINs before leaving this page.
+  </div>
+
+  <h3><%= @robotics_competition.name %></h3>
+  <p>
+    Public page:
+    <a href="<%= "#{Settings.ui.url.to_s.delete_suffix("/")}/robotica/#{@robotics_competition.slug}" %>">
+      <%= "#{Settings.ui.url.to_s.delete_suffix("/")}/robotica/#{@robotics_competition.slug}" %>
+    </a>.
+    These PINs cannot be recovered later; a lost PIN must be regenerated.
+  </p>
+
+  <div class="table-responsive">
+    <table class="table table-striped ie-data-table">
+      <thead>
+        <tr>
+          <th scope="col">Team</th>
+          <th scope="col">PIN</th>
+          <th scope="col">Allocated time</th>
+        </tr>
+      </thead>
+      <tbody>
+        <% @issued_pins.each do |issued| %>
+          <tr>
+            <td><%= issued[:team].name %></td>
+            <td>
+              <code class="ie-api-key-secret__value"><%= issued[:pin] %></code>
+            </td>
+            <td><%= @robotics_competition.team_allocation_seconds / 60 %> min</td>
+          </tr>
+        <% end %>
+      </tbody>
+    </table>
+  </div>
+
+  <div class="form-actions">
+    <button class="btn btn-default" type="button" onclick="window.print()">
+      Print PIN sheet
+    </button>
+    <%= link_to "I have stored the PINs", index_path, class: "btn btn-primary" %>
+  </div>
+</section>

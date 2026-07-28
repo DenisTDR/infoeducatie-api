@@ -2,6 +2,6 @@
 
 # Configure sensitive parameters which will be filtered from the log file.
 Rails.application.config.filter_parameters += %i[
-  passw email secret token _key crypt salt certificate otp ssn cnp
+  passw email secret token pin _key crypt salt certificate otp ssn cnp
   id_card_number phone_number cvv cvc authorization
 ]
