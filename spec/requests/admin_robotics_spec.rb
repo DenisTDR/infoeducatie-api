@@ -269,7 +269,7 @@ RSpec.describe "RailsAdmin robotics management", type: :request do
     expect(response).to have_http_status(:ok)
     expect(response.body).to include("Force-stop")
 
-    travel_to(2.minutes.from_now) do
+    travel_to(now + 2.minutes) do
       post action_path,
         params: {force_stop: {reason: "Arena safety stop"}}
     end
