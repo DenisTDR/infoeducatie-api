@@ -138,8 +138,20 @@ class RoboticsCompetition < ActiveRecord::Base
 
   def normalize_slug
     generated_from_name = slug.blank?
-    normalized_slug = (slug.presence || name).to_s
-      .tr("ĂÂÎȘŞȚŢăâîșşțţ", "AAISSTTaaisstt")
+    source = (slug.presence || name).to_s
+    source = if source.encoding == Encoding::ASCII_8BIT
+      source.dup.force_encoding(Encoding::UTF_8).scrub
+    else
+      source.encode(
+        Encoding::UTF_8,
+        invalid: :replace,
+        undef: :replace,
+        replace: ""
+      )
+    end
+    normalized_slug = source
+      .unicode_normalize(:nfkd)
+      .gsub(/\p{Mn}/, "")
       .parameterize
     normalized_slug = normalized_slug.first(80).sub(/-+\z/, "") if generated_from_name
     self.slug = normalized_slug

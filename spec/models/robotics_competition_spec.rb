@@ -4,7 +4,7 @@ RSpec.describe RoboticsCompetition, type: :model do
   it "generates a bounded slug from a Romanian competition name" do
     competition = build(
       :robotics_competition,
-      name: ("Competiție românească pentru drone " * 3).strip,
+      name: ("Competiție românească pentru drone " * 3).strip.b,
       slug: ""
     )
 
