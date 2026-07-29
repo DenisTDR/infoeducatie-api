@@ -8,6 +8,13 @@ RSpec.describe "RailsAdmin robotics management", type: :request do
   end
 
   it "creates a competition with friendly units and displays five PINs once" do
+    get "/internal/admin/robotics_competition/create_robotics_competition"
+
+    expect(response).to have_http_status(:ok)
+    expect(response.body).to include("data-robotics-competition-form")
+    expect(response.body).to include("data-robotics-competition-name")
+    expect(response.body).to include("data-robotics-competition-slug")
+
     expect {
       post "/internal/admin/robotics_competition/create_robotics_competition",
         params: {
@@ -27,8 +34,7 @@ RSpec.describe "RailsAdmin robotics management", type: :request do
       .and change(RoboticsTeam, :count).by(5)
       .and change(RoboticsTimeEntry, :count).by(5)
 
-    expect(response).to have_http_status(:ok)
-    expect(response.headers["Cache-Control"]).to include("no-store")
+    expect(response).to have_http_status(:see_other)
     competition = RoboticsCompetition.order(:id).last
     expect(competition).to have_attributes(
       slug: "robotica-2026",
@@ -40,10 +46,90 @@ RSpec.describe "RailsAdmin robotics management", type: :request do
     )
     expect(competition.robotics_teams.order(:position).pluck(:name))
       .to eq(["Echipa 1", "Echipa 2", "Echipa 3", "Echipa 4", "Echipa 5"])
+
+    follow_redirect!
+
+    expect(response).to have_http_status(:ok)
+    expect(response.headers["Cache-Control"]).to include("no-store")
+    expect(response.body).to include(
+      'content="no-cache" name="turbo-cache-control"'
+    )
     expect(response.body.scan(/\b\d{8}\b/).uniq.length).to be >= 5
     expect(response.body).to include(
       "#{Settings.ui.url.to_s.delete_suffix("/")}/robotica/robotica-2026"
     )
+
+    issued_pins = response.body.scan(/\b\d{8}\b/).uniq
+    get "/internal/admin/robotics_competition/create_robotics_competition"
+    expect(response).to have_http_status(:ok)
+    issued_pins.each do |pin|
+      expect(response.body).not_to include(pin)
+    end
+  end
+
+  it "preserves a manually supplied competition slug" do
+    post "/internal/admin/robotics_competition/create_robotics_competition",
+      params: {
+        robotics_competition: {
+          name: "Robotica 2026",
+          slug: "arena-drone",
+          starts_at: 1.day.from_now.strftime("%Y-%m-%dT%H:%M"),
+          duration_hours: 20,
+          team_count: 1,
+          team_allocation_minutes: 180,
+          turn_duration_minutes: 10,
+          claim_window_seconds: 60,
+          turnover_seconds: 60
+        }
+      }
+
+    expect(response).to have_http_status(:see_other)
+    expect(RoboticsCompetition.order(:id).last.slug).to eq("arena-drone")
+  end
+
+  it "redirects the maximum 20-team PIN sheet without overflowing the session" do
+    post "/internal/admin/robotics_competition/create_robotics_competition",
+      params: {
+        robotics_competition: {
+          name: "Robotica 20 echipe",
+          slug: "",
+          starts_at: 1.day.from_now.strftime("%Y-%m-%dT%H:%M"),
+          duration_hours: 20,
+          team_count: 20,
+          team_allocation_minutes: 180,
+          turn_duration_minutes: 10,
+          claim_window_seconds: 60,
+          turnover_seconds: 60
+        }
+      }
+
+    expect(response).to have_http_status(:see_other)
+    follow_redirect!
+    expect(response).to have_http_status(:ok)
+    expect(response.body.scan(/\b\d{8}\b/).uniq.length).to be >= 20
+  end
+
+  it "renders validation feedback without redirecting" do
+    expect {
+      post "/internal/admin/robotics_competition/create_robotics_competition",
+        params: {
+          robotics_competition: {
+            name: "",
+            slug: "",
+            starts_at: 1.day.from_now.strftime("%Y-%m-%dT%H:%M"),
+            duration_hours: 20,
+            team_count: 5,
+            team_allocation_minutes: 180,
+            turn_duration_minutes: 10,
+            claim_window_seconds: 60,
+            turnover_seconds: 60
+          }
+        }
+    }.not_to change(RoboticsCompetition, :count)
+
+    expect(response).to have_http_status(:unprocessable_content)
+    expect(response.body).to include("Competition could not be created.")
+    expect(response.body).to include("Name can&#39;t be blank")
   end
 
   it "records signed time changes with a mandatory reason and actor" do

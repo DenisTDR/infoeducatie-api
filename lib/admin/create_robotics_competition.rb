@@ -2,6 +2,8 @@ module RailsAdmin
   module Config
     module Actions
       class CreateRoboticsCompetition < RailsAdmin::Config::Actions::Base
+        RESULT_FLASH_KEY = :robotics_competition_result
+
         RailsAdmin::Config::Actions.register(self)
 
         register_instance_option :collection do
@@ -28,7 +30,30 @@ module RailsAdmin
             }
 
             if request.get?
-              render @action.template_name
+              result_payload = flash[RESULT_FLASH_KEY]
+              unless result_payload
+                render @action.template_name
+                next
+              end
+              flash.delete(RESULT_FLASH_KEY)
+
+              @robotics_competition = ::RoboticsCompetition.find(
+                result_payload.fetch("competition_id")
+              )
+              issued_pins = result_payload.fetch("issued_pins")
+              teams_by_id = @robotics_competition.robotics_teams
+                .where(id: issued_pins.pluck("team_id"))
+                .index_by(&:id)
+              @issued_pins = issued_pins.map do |issued|
+                {
+                  team: teams_by_id.fetch(issued.fetch("team_id")),
+                  pin: issued.fetch("pin")
+                }
+              end
+              response.headers["Cache-Control"] = "no-store, max-age=0"
+              response.headers["Pragma"] = "no-cache"
+              @turbo_cache_control = "no-cache"
+              render "rails_admin/main/create_robotics_competition_result"
               next
             end
 
@@ -66,15 +91,22 @@ module RailsAdmin
             )
             @robotics_competition = result.competition
             @issued_pins = result.issued_pins
-            response.headers["Cache-Control"] = "no-store, max-age=0"
-            response.headers["Pragma"] = "no-cache"
             Rails.logger.info(
               "Robotics competition created " \
               "competition_id=#{@robotics_competition.id} " \
               "team_count=#{@issued_pins.length} " \
               "admin_user_id=#{current_user.id}"
             )
-            render "rails_admin/main/create_robotics_competition_result"
+            flash[RESULT_FLASH_KEY] = {
+              "competition_id" => @robotics_competition.id,
+              "issued_pins" => @issued_pins.map do |issued|
+                {
+                  "team_id" => issued.fetch(:team).id,
+                  "pin" => issued.fetch(:pin)
+                }
+              end
+            }
+            redirect_to request.path, status: :see_other
           rescue ActiveRecord::RecordInvalid, ArgumentError, KeyError => error
             @creation_error = error
             @submitted = params[:robotics_competition]&.to_unsafe_h || {}

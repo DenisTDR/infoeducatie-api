@@ -137,7 +137,12 @@ class RoboticsCompetition < ActiveRecord::Base
   private
 
   def normalize_slug
-    self.slug = (slug.presence || name).to_s.parameterize
+    generated_from_name = slug.blank?
+    normalized_slug = (slug.presence || name).to_s
+      .tr("ĂÂÎȘŞȚŢăâîșşțţ", "AAISSTTaaisstt")
+      .parameterize
+    normalized_slug = normalized_slug.first(80).sub(/-+\z/, "") if generated_from_name
+    self.slug = normalized_slug
   end
 
   def turn_fits_inside_competition

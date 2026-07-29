@@ -358,6 +358,65 @@
     });
   }
 
+  function roboticsCompetitionSlug(value) {
+    var normalized = value && value.normalize
+      ? value.normalize("NFKD")
+      : String(value || "");
+
+    return normalized
+      .replace(/[\u0300-\u036f]/g, "")
+      .toLowerCase()
+      .replace(/[^a-z0-9]+/g, "-")
+      .replace(/^-+|-+$/g, "")
+      .slice(0, 80)
+      .replace(/-+$/g, "");
+  }
+
+  function initializeRoboticsCompetitionForms(scope) {
+    var root = scope || document;
+    var forms = Array.prototype.slice.call(
+      root.querySelectorAll
+        ? root.querySelectorAll("[data-robotics-competition-form]")
+        : []
+    );
+
+    if (root.matches && root.matches("[data-robotics-competition-form]")) {
+      forms.push(root);
+    }
+
+    forms.forEach(function (form) {
+      if (form.dataset.roboticsCompetitionReady === "true") return;
+
+      var nameInput = form.querySelector("[data-robotics-competition-name]");
+      var slugInput = form.querySelector("[data-robotics-competition-slug]");
+      if (!nameInput || !slugInput) return;
+
+      form.dataset.roboticsCompetitionReady = "true";
+
+      var generatedSlug = roboticsCompetitionSlug(nameInput.value);
+      var slugIsManual =
+        slugInput.value.trim() !== "" && slugInput.value !== generatedSlug;
+
+      slugInput.dataset.roboticsSlugManual = String(slugIsManual);
+      if (!slugIsManual) slugInput.value = generatedSlug;
+
+      nameInput.addEventListener("input", function () {
+        if (slugInput.dataset.roboticsSlugManual === "true") return;
+
+        slugInput.value = roboticsCompetitionSlug(nameInput.value);
+      });
+
+      slugInput.addEventListener("input", function () {
+        var automaticValue = roboticsCompetitionSlug(nameInput.value);
+        var manuallyEdited =
+          slugInput.value.trim() !== "" && slugInput.value !== automaticValue;
+
+        slugInput.dataset.roboticsSlugManual = String(manuallyEdited);
+        if (!manuallyEdited) slugInput.value = automaticValue;
+      });
+    });
+  }
+
   document.addEventListener("click", function (event) {
     if (event.target.closest("[data-screenshot-add]")) {
       installScreenshotInsertFields();
@@ -461,17 +520,20 @@
     initializeAdminShell(document);
     initializeScreenshotEditors(document);
     initializeRichTextEditors(document);
+    initializeRoboticsCompetitionForms(document);
   });
 
   document.addEventListener("rails_admin.dom_ready", function (event) {
     initializeAdminShell(event.detail || document);
     initializeScreenshotEditors(event.detail || document);
     initializeRichTextEditors(event.detail || document);
+    initializeRoboticsCompetitionForms(event.detail || document);
   });
 
   document.addEventListener("turbo:load", function () {
     initializeAdminShell(document);
     initializeScreenshotEditors(document);
     initializeRichTextEditors(document);
+    initializeRoboticsCompetitionForms(document);
   });
 })(jQuery);

@@ -3,6 +3,9 @@
 <meta content="width=device-width, initial-scale=1" name="viewport">
 <meta content="noindex, nofollow, noarchive" name="robots">
 <meta content="false" name="turbo-prefetch">
+<% if @turbo_cache_control.present? %>
+  <meta content="<%= @turbo_cache_control %>" name="turbo-cache-control">
+<% end %>
 <meta content="light" name="color-scheme">
 <meta content="#24282b" name="theme-color">
 <title>

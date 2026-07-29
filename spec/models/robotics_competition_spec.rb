@@ -1,6 +1,19 @@
 require "rails_helper"
 
 RSpec.describe RoboticsCompetition, type: :model do
+  it "generates a bounded slug from a Romanian competition name" do
+    competition = build(
+      :robotics_competition,
+      name: ("Competiție românească pentru drone " * 3).strip,
+      slug: ""
+    )
+
+    expect(competition).to be_valid
+    expect(competition.slug).to start_with("competitie-romaneasca-pentru-drone")
+    expect(competition.slug.length).to be <= 80
+    expect(competition.slug).not_to end_with("-")
+  end
+
   it "derives scheduled, live, and ended states from authoritative timestamps" do
     starts_at = Time.zone.parse("2026-07-29 08:00")
     competition = build(

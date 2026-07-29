@@ -13,18 +13,28 @@
   <% end %>
 
   <% values = @defaults.merge((@submitted || {}).symbolize_keys) %>
-  <%= form_tag request.path, method: :post do %>
+  <%= form_tag request.path,
+    method: :post,
+    autocomplete: "off",
+    data: {
+      robotics_competition_form: true
+    } do %>
     <div class="form-group">
       <%= label_tag "robotics_competition_name", "Name" %>
       <%= text_field_tag "robotics_competition[name]", values[:name],
-        class: "form-control", required: true, maxlength: 120 %>
+        class: "form-control", required: true, maxlength: 120,
+        data: {robotics_competition_name: true} %>
     </div>
 
     <div class="form-group">
       <%= label_tag "robotics_competition_slug", "Public URL slug" %>
       <%= text_field_tag "robotics_competition[slug]", values[:slug],
-        class: "form-control", placeholder: "robotics-2026" %>
-      <p class="help-block">Leave blank to derive it from the name.</p>
+        class: "form-control", placeholder: "robotics-2026", maxlength: 80,
+        data: {robotics_competition_slug: true} %>
+      <p class="help-block">
+        Generated from the name until you edit it. Clear it to restore the
+        automatic value.
+      </p>
     </div>
 
     <div class="form-group">
