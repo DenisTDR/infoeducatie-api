@@ -175,3 +175,19 @@ ro:
         title: "Revoca cheia API '%{object_label}'"
         menu: "Revoca"
         breadcrumb: "Revoca"
+      create_robotics_competition:
+        title: "Creează o competiție de robotică"
+        menu: "Creează competiție"
+        breadcrumb: "Creează o competiție de robotică"
+      adjust_robotics_team_time:
+        title: "Ajustează timpul pentru '%{object_label}'"
+        menu: "Ajustează timpul"
+        breadcrumb: "Ajustează timpul echipei"
+      regenerate_robotics_team_pin:
+        title: "Regenerează PIN-ul pentru '%{object_label}'"
+        menu: "Regenerează PIN-ul"
+        breadcrumb: "Regenerează PIN-ul echipei"
+      force_stop_robotics_turn:
+        title: "Oprește tura de robotică '%{object_label}'"
+        menu: "Oprește tura"
+        breadcrumb: "Oprește tura de robotică"

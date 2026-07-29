@@ -109,6 +109,22 @@ en:
         title: "Revoke API key '%{object_label}'"
         menu: "Revoke"
         breadcrumb: "Revoke"
+      create_robotics_competition:
+        title: "Create robotics competition"
+        menu: "Create competition"
+        breadcrumb: "Create robotics competition"
+      adjust_robotics_team_time:
+        title: "Adjust time for '%{object_label}'"
+        menu: "Adjust time"
+        breadcrumb: "Adjust team time"
+      regenerate_robotics_team_pin:
+        title: "Regenerate PIN for '%{object_label}'"
+        menu: "Regenerate PIN"
+        breadcrumb: "Regenerate team PIN"
+      force_stop_robotics_turn:
+        title: "Stop robotics turn '%{object_label}'"
+        menu: "Stop turn"
+        breadcrumb: "Stop robotics turn"
       delete:
         title: "Delete %{model_label} '%{object_label}'"
         menu: "Delete"
