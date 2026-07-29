@@ -51,12 +51,20 @@ class RoboticsCompetition < ActiveRecord::Base
     duration_seconds / 1.hour.to_f
   end
 
+  def duration_hours=(value)
+    self.duration_seconds = seconds_from(value, 1.hour)
+  end
+
   def team_allocation_minutes
     team_allocation_seconds / 1.minute.to_f
   end
 
   def turn_duration_minutes
     turn_duration_seconds / 1.minute.to_f
+  end
+
+  def turn_duration_minutes=(value)
+    self.turn_duration_seconds = seconds_from(value, 1.minute)
   end
 
   def status(at: Time.current)
@@ -126,15 +134,28 @@ class RoboticsCompetition < ActiveRecord::Base
       field :name
       field :slug
       field :starts_at
-      field :duration_seconds
-      field :team_allocation_seconds
-      field :turn_duration_seconds
+      field :duration_hours, :float do
+        label "Duration (hours)"
+        html_attributes min: 0.25, step: 0.25
+      end
+      field :turn_duration_minutes, :float do
+        label "Turn length (minutes)"
+        html_attributes min: 1, step: 1
+      end
       field :claim_window_seconds
       field :turnover_seconds
     end
   end
 
   private
+
+  def seconds_from(value, unit)
+    return if value.blank?
+
+    (BigDecimal(value.to_s) * unit).to_i
+  rescue ArgumentError
+    value
+  end
 
   def normalize_slug
     generated_from_name = slug.blank?

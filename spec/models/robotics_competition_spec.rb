@@ -39,6 +39,16 @@ RSpec.describe RoboticsCompetition, type: :model do
     expect(competition.errors[:turn_duration_seconds]).to be_present
   end
 
+  it "accepts friendly hour and minute units for admin editing" do
+    competition = build(:robotics_competition)
+
+    competition.duration_hours = "18.5"
+    competition.turn_duration_minutes = "12"
+
+    expect(competition.duration_seconds).to eq(18.5.hours.to_i)
+    expect(competition.turn_duration_seconds).to eq(12.minutes.to_i)
+  end
+
   it "allows scheduling changes only before the competition and turn history" do
     competition = create(
       :robotics_competition,

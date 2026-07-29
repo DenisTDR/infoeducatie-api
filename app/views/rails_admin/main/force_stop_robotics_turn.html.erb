@@ -11,15 +11,23 @@
     </div>
   <% end %>
 
-  <%= form_tag request.path, method: :post do %>
-    <div class="form-group">
-      <%= label_tag "force_stop_reason", "Reason" %>
-      <%= text_area_tag "force_stop[reason]", nil,
-        class: "form-control", required: true, rows: 3 %>
-    </div>
+  <% if @object.active? %>
+    <% submitted = (@submitted_force_stop || {}).with_indifferent_access %>
+    <%= form_tag request.path, method: :post do %>
+      <div class="form-group">
+        <%= label_tag "force_stop_reason", "Reason" %>
+        <%= text_area_tag "force_stop[reason]", submitted[:reason],
+          class: "form-control", required: true, rows: 3 %>
+      </div>
+      <div class="form-actions">
+        <%= submit_tag "Force-stop turn", class: "btn btn-danger" %>
+        <%= link_to "Cancel", index_path, class: "btn btn-default" %>
+      </div>
+    <% end %>
+  <% else %>
     <div class="form-actions">
-      <%= submit_tag "Force-stop turn", class: "btn btn-danger" %>
-      <%= link_to "Cancel", index_path, class: "btn btn-default" %>
+      <%= link_to "Back to robotics turns", index_path,
+        class: "btn btn-primary" %>
     </div>
   <% end %>
 </section>

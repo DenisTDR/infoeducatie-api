@@ -37,7 +37,10 @@ RailsAdmin.config do |config|
               "Ckeditor::AttachmentFile", "Ckeditor::Picture"]
     end
     export do
-      except ["ApiCredential", "Screenshot", "Ckeditor::Asset", "Ckeditor::AttachmentFile", "Ckeditor::Picture"]
+      except ["ApiCredential", "Screenshot", "RoboticsCompetition",
+              "RoboticsTeam", "RoboticsTurn", "RoboticsTimeEntry",
+              "Ckeditor::Asset", "Ckeditor::AttachmentFile",
+              "Ckeditor::Picture"]
     end
     show do
       except ["Ckeditor::Asset", "Ckeditor::AttachmentFile", "Ckeditor::Picture"]

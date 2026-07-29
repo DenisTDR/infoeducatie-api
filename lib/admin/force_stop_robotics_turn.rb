@@ -39,10 +39,14 @@ module RailsAdmin
               "admin_user_id=#{current_user.id}"
             )
             flash[:success] = "The active robotics turn was stopped."
-            redirect_to index_path
+            redirect_to index_path, status: :see_other
           rescue ::Robotics::TransitionError, ActionController::ParameterMissing,
             KeyError => error
             @force_stop_error = error
+            @submitted_force_stop = params[:force_stop]
+              &.permit(:reason)
+              &.to_h || {}
+            @object.reload
             response.status = :unprocessable_content
             render @action.template_name
           end

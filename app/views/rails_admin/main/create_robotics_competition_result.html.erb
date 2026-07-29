@@ -7,7 +7,9 @@
   <h3><%= @robotics_competition.name %></h3>
   <p>
     Public page:
-    <a href="<%= "#{Settings.ui.url.to_s.delete_suffix("/")}/robotica/#{@robotics_competition.slug}" %>">
+    <a href="<%= "#{Settings.ui.url.to_s.delete_suffix("/")}/robotica/#{@robotics_competition.slug}" %>"
+       target="_blank"
+       rel="noopener noreferrer">
       <%= "#{Settings.ui.url.to_s.delete_suffix("/")}/robotica/#{@robotics_competition.slug}" %>
     </a>.
     These PINs cannot be recovered later; a lost PIN must be regenerated.

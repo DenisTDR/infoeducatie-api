@@ -55,11 +55,18 @@ module Robotics
 
       def force_stop!(turn, actor:, reason:, now: Time.current)
         competition = turn.robotics_competition
+        transition_error = nil
         competition.with_lock do
           coordinator = new(competition, now: now)
           coordinator.synchronize!
-          coordinator.force_stop!(turn, actor: actor, reason: reason)
+          begin
+            coordinator.force_stop!(turn, actor: actor, reason: reason)
+          rescue TransitionError => error
+            transition_error = error
+          end
         end
+        raise transition_error if transition_error
+
         competition.reload
       end
     end

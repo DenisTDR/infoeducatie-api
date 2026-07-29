@@ -41,9 +41,12 @@ module RailsAdmin
             flash[:success] =
               "#{minutes.positive? ? 'Added' : 'Deducted'} " \
               "#{minutes.abs} minutes for #{@object.name}."
-            redirect_to index_path
+            redirect_to index_path, status: :see_other
           rescue ::Robotics::TransitionError, ArgumentError, KeyError => error
             @adjustment_error = error
+            @submitted_adjustment = params[:time_adjustment]
+              &.permit(:minutes, :reason)
+              &.to_h || {}
             response.status = :unprocessable_content
             render @action.template_name
           end
