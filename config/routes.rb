@@ -51,6 +51,8 @@ Rails.application.routes.draw do
     namespace :integrations do
       resources :competitions, only: [:index]
       get :competition_data, to: "competition_data#show"
+      put "competitions/:competition_id/results",
+        to: "competition_results#update"
     end
 
     namespace :robotics do

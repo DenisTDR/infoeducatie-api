@@ -3,6 +3,12 @@ module V1
     class BaseController < ApiController
       RATE_LIMIT = [ENV.fetch("INTEGRATION_API_RATE_LIMIT", "300").to_i, 1].max
 
+      rescue_from ActionDispatch::Http::Parameters::ParseError,
+        with: :render_invalid_json
+
+      skip_before_action :set_locale
+      skip_forgery_protection
+
       before_action :disable_response_caching
       before_action :require_secure_transport
       before_action :load_api_credential
@@ -100,6 +106,16 @@ module V1
         render json: payload, status: status
       end
 
+      def render_invalid_json
+        disable_response_caching
+        render_api_error(
+          code: "invalid_json",
+          message: "The request body contains invalid JSON.",
+          status: :bad_request
+        )
+        record_api_credential_use
+      end
+
       def disable_response_caching
         response.headers["Cache-Control"] = "private, no-store, max-age=0"
         response.headers["Pragma"] = "no-cache"
@@ -114,8 +130,10 @@ module V1
       def record_api_credential_use
         return unless current_api_credential
         return if response.status == 429
+        return if @api_credential_use_recorded
 
         current_api_credential.record_use!(ip: request.remote_ip)
+        @api_credential_use_recorded = true
       rescue ActiveRecord::ActiveRecordError => error
         Rails.logger.warn(
           "Integration API usage audit failed " \

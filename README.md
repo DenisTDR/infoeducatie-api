@@ -30,7 +30,8 @@ docker compose up --build
 Successful `master` builds are published to GitHub Container Registry.
 
 Service-to-service exports use scoped, expiring API credentials managed from
-RailsAdmin.
+RailsAdmin. See [API.md](API.md) for the integration endpoints, including the
+competition-results update and conclusion contract.
 
 ### New contest edition
 

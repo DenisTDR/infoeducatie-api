@@ -7,11 +7,14 @@ class ApiCredential < ActiveRecord::Base
 
   COMPETITIONS_READ_SCOPE = "competitions:read"
   COMPETITION_DATA_READ_SCOPE = "competition_data:read"
+  COMPETITION_RESULTS_WRITE_SCOPE = "competition_results:write"
   PARTICIPANT_PERSONAL_DATA_READ_SCOPE = "participants:personal_data:read"
 
   AVAILABLE_SCOPES = {
     COMPETITIONS_READ_SCOPE => "List competitions and years",
     COMPETITION_DATA_READ_SCOPE => "Read participants and projects for a competition",
+    COMPETITION_RESULTS_WRITE_SCOPE =>
+      "Update project results and conclude a competition",
     PARTICIPANT_PERSONAL_DATA_READ_SCOPE =>
       "Read sensitive participant contact and identity data"
   }.freeze
